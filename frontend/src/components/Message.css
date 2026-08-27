@@ -20,9 +20,13 @@
   color: rgb(var(--text-secondary));
 }
 
+/* The assistant avatar renders its own themed circle and border, so this
+   wrapper stays transparent. It previously painted `var(--anthropic-brand)`,
+   a variable that is not defined anywhere in the codebase, behind a rounded
+   square — which double-layered against the round avatar. */
 .msg-avatar-assistant {
-  background: var(--anthropic-brand);
-  color: rgb(13, 13, 13);
+  background: transparent;
+  border-radius: 50%;
 }
 
 .msg-body {

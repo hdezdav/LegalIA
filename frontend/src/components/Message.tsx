@@ -4,7 +4,8 @@ import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '../types';
 import { copyToClipboard } from '../utils';
 import { getTranslations } from '../i18n';
-import { UserIcon, LogoIcon, CopyIcon, CheckIcon } from './Icons';
+import { UserIcon, CopyIcon, CheckIcon } from './Icons';
+import { LegaliaBotAvatar } from './LegaliaBotAvatar';
 import './Message.css';
 
 const t = getTranslations('es');
@@ -29,7 +30,7 @@ export function Message({ message }: MessageProps) {
   return (
     <div className={`msg-row ${isUser ? 'msg-row-user' : 'msg-row-assistant'}`}>
       <div className={`msg-avatar ${isUser ? 'msg-avatar-user' : 'msg-avatar-assistant'}`}>
-        {isUser ? <UserIcon size={15} /> : <LogoIcon size={15} />}
+        {isUser ? <UserIcon size={15} /> : <LegaliaBotAvatar size={28} state="idle" interactive={true} />}
       </div>
 
       <div className="msg-body">

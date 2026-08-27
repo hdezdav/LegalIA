@@ -1,0 +1,162 @@
+/* Thinking indicator.
+   Uses the app's theme tokens so it reads correctly in light and dark mode,
+   instead of the hardcoded dark palette it had before. */
+
+.claude-thinking-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  margin: 12px 0 16px 0;
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInThinking 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.claude-thinking-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+  user-select: none;
+}
+
+.claude-thinking-container.has-thought .claude-thinking-header {
+  cursor: pointer;
+}
+
+.thinking-avatar-cell {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.thinking-bot-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.thinking-model-pill {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-surface-hover);
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+/* Elapsed time as plain muted text: it is secondary information and does not
+   need a coloured pill competing with the message content. */
+.thinking-elapsed {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Three-dot pulse. Calm, monochrome, and the only moving element while
+   generating — no scanning gradients, no shimmering text. */
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 2px;
+}
+
+.thinking-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  animation: thinkingDotPulse 1.4s infinite ease-in-out both;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes thinkingDotPulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40%           { opacity: 1;    transform: scale(1); }
+}
+
+.thinking-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.thinking-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.thinking-chevron {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.thinking-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Reasoning accordion */
+.claude-thought-content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.thought-inner-box {
+  background: var(--bg-surface-hover);
+  border-radius: 8px;
+  padding: 10px 14px;
+  border-left: 2px solid var(--border-focus);
+}
+
+.thought-tag {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.thought-inner-box p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+@keyframes fadeInThinking {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .claude-thinking-container { animation: none; }
+  .thinking-dots span { animation: none; opacity: 0.6; }
+}

@@ -22,13 +22,14 @@ import {
   MenuIcon,
   ArrowUpIcon,
   DownloadIcon,
-  LogoIcon,
   SlidersIcon,
   MicIcon,
   FileTextIcon,
   BotIcon,
   PaperclipIcon,
 } from './Icons';
+import { LegaliaBotAvatar } from './LegaliaBotAvatar';
+import { ThinkingBlock } from './ThinkingBlock';
 import './Chat.css';
 
 interface ChatProps {
@@ -404,10 +405,13 @@ export function Chat({
         {isEmpty ? (
           <div className="empty-hero-container">
             <div className="empty-greeting-row">
-              <div className="empty-logo-circle">
-                <LogoIcon size={24} />
+              <div className="hero-avatar-wrapper">
+                <LegaliaBotAvatar size={84} state="idle" interactive={true} glow={true} />
               </div>
               <h1 className="empty-greeting-title">{greetingText}</h1>
+              <p className="empty-greeting-subtitle">
+                Asistente jurídico inteligente especializado en derecho y jurisprudencia colombiana
+              </p>
             </div>
 
             {/* Centered Composer Capsule */}
@@ -506,19 +510,10 @@ export function Chat({
             ))}
 
             {loading && (
-              <div className="msg-row msg-row-assistant">
-                <div className="msg-avatar msg-avatar-assistant">
-                  <LogoIcon size={15} />
-                </div>
-                <div className="msg-body">
-                  <div className="msg-name">Legalia ({selectedModelId})</div>
-                  <div className="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-              </div>
+              <ThinkingBlock
+                modelName={selectedModelId || 'Claude Sonnet 4.6'}
+                isGenerating={true}
+              />
             )}
 
             <div ref={messagesEndRef} />

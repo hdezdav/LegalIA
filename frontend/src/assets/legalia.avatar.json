@@ -1,0 +1,133 @@
+{
+  "schema": "bible-strong/avatar-definition",
+  "schemaVersion": 1,
+  "name": "LegaliaBot",
+  "body": {
+    "primary": {
+      "type": "capsule",
+      "width": 120,
+      "height": 140,
+      "depth": 100,
+      "roundness": 0.85
+    },
+    "nodes": []
+  },
+  "colors": {
+    "body": "#0b101b",
+    "eyes": "#38bdf8"
+  },
+  "expressions": {
+    "neutral": {
+      "head": { "x": 0, "y": 0, "z": 0 },
+      "eyes": {
+        "left": { "width": 14, "height": 18, "x": -24, "y": 0, "angle": 0 },
+        "right": { "width": 14, "height": 18, "x": 24, "y": 0, "angle": 0 },
+        "spacing": 48
+      },
+      "perspective": 1,
+      "motion": { "eyes": "microSaccades", "body": "slowDrift" }
+    },
+    "thinking": {
+      "head": { "x": 6, "y": -4, "z": -2 },
+      "eyes": {
+        "left": { "width": 16, "height": 8, "x": -22, "y": -6, "angle": 12 },
+        "right": { "width": 16, "height": 8, "x": 26, "y": -6, "angle": -12 },
+        "spacing": 48
+      },
+      "perspective": 1,
+      "motion": { "eyes": "microSaccades", "body": "slowDrift" },
+      "colors": { "eyes": "#a855f7" }
+    },
+    "searching": {
+      "head": { "x": -5, "y": 3, "z": 0 },
+      "eyes": {
+        "left": { "width": 15, "height": 14, "x": -26, "y": 2, "angle": -8 },
+        "right": { "width": 15, "height": 14, "x": 22, "y": 2, "angle": 8 },
+        "spacing": 48
+      },
+      "perspective": 1,
+      "motion": { "eyes": "shake", "body": "slowDrift" },
+      "colors": { "eyes": "#60a5fa" }
+    },
+    "answering": {
+      "head": { "x": 0, "y": 2, "z": 0 },
+      "eyes": {
+        "left": { "width": 15, "height": 20, "x": -24, "y": 2, "angle": 0 },
+        "right": { "width": 15, "height": 20, "x": 24, "y": 2, "angle": 0 },
+        "spacing": 48
+      },
+      "perspective": 1,
+      "motion": { "eyes": "microSaccades", "body": "slowDrift" },
+      "colors": { "eyes": "#10b981" }
+    },
+    "happy": {
+      "head": { "x": 0, "y": 0, "z": 0 },
+      "eyes": {
+        "left": { "width": 16, "height": 14, "x": -24, "y": -2, "angle": 15 },
+        "right": { "width": 16, "height": 14, "x": 24, "y": -2, "angle": -15 },
+        "spacing": 48
+      },
+      "perspective": 1,
+      "motion": { "eyes": "none", "body": "slowDrift" },
+      "colors": { "eyes": "#38bdf8" }
+    }
+  },
+  "expressionOrder": ["neutral", "thinking", "searching", "answering", "happy"],
+  "animations": {
+    "idle": {
+      "playbackMode": "loop",
+      "blink": {
+        "enabled": true,
+        "initialDelayMs": 1800,
+        "minIntervalMs": 2500,
+        "maxIntervalMs": 6000,
+        "durationMs": 140
+      },
+      "steps": [
+        { "expression": "neutral", "holdMs": 3500, "transitionMs": 600, "transition": "smooth" },
+        { "expression": "happy", "holdMs": 1200, "transitionMs": 450, "transition": "spring" }
+      ]
+    },
+    "thinking": {
+      "playbackMode": "pingPong",
+      "blink": {
+        "enabled": true,
+        "initialDelayMs": 800,
+        "minIntervalMs": 1800,
+        "maxIntervalMs": 3500,
+        "durationMs": 130
+      },
+      "steps": [
+        { "expression": "thinking", "holdMs": 1400, "transitionMs": 350, "transition": "smooth" },
+        { "expression": "searching", "holdMs": 1200, "transitionMs": 400, "transition": "smooth" }
+      ]
+    },
+    "answering": {
+      "playbackMode": "loop",
+      "blink": {
+        "enabled": true,
+        "initialDelayMs": 1500,
+        "minIntervalMs": 2500,
+        "maxIntervalMs": 5000,
+        "durationMs": 140
+      },
+      "steps": [
+        { "expression": "answering", "holdMs": 2200, "transitionMs": 350, "transition": "spring" }
+      ]
+    },
+    "happy": {
+      "playbackMode": "once",
+      "blink": {
+        "enabled": true,
+        "initialDelayMs": 500,
+        "minIntervalMs": 2000,
+        "maxIntervalMs": 4000,
+        "durationMs": 140
+      },
+      "steps": [
+        { "expression": "happy", "holdMs": 2000, "transitionMs": 300, "transition": "spring" }
+      ]
+    }
+  },
+  "animationOrder": ["idle", "thinking", "answering", "happy"]
+}

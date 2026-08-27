@@ -273,9 +273,10 @@
 }
 
 .msg-avatar-assistant {
-  background: var(--bg-surface-hover);
-  border: 1px solid var(--border-medium);
+  background: transparent;
+  border: none;
   color: var(--text-primary);
+  overflow: visible;
 }
 
 .msg-body {

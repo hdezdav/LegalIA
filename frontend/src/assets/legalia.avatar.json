@@ -1,91 +1,143 @@
 {
   "schema": "bible-strong/avatar-definition",
   "schemaVersion": 1,
-  "name": "LegaliaBot",
+  "name": "Cloudee",
   "body": {
     "primary": {
-      "type": "capsule",
-      "width": 120,
-      "height": 140,
-      "depth": 100,
-      "roundness": 0.85
+      "type": "sphere",
+      "width": 159.787109375,
+      "height": 159.787109375,
+      "depth": 159.77982741038028,
+      "roundness": 1
     },
-    "nodes": []
+    "nodes": [
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 81.6,
+          "height": 81.6,
+          "depth": 81.6,
+          "roundness": 1
+        },
+        "position": [-54.211163573292225, -19.983270576375716, -18],
+        "rotation": [0, 0, 0]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 108.64140625,
+          "height": 87.10000590491492,
+          "depth": 90.99923895827905,
+          "roundness": 1
+        },
+        "position": [-64.06931629506641, 18.35102511266605, -18],
+        "rotation": [0, 0, 0]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 97.791015625,
+          "height": 96.8381380478929,
+          "depth": 89.56416057242059,
+          "roundness": 1
+        },
+        "position": [61.23234219342984, 18.962019686907013, -18],
+        "rotation": [0, 0, 0]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 94.34892531002268,
+          "height": 94.3451962078319,
+          "depth": 100.53515625,
+          "roundness": 1
+        },
+        "position": [41.48876642638391, -37.63883372407813, -17.99133043155456],
+        "rotation": [0, 0, 0]
+      }
+    ]
   },
   "colors": {
-    "body": "#0b101b",
-    "eyes": "#38bdf8"
+    "body": "#c9cbcf",
+    "eyes": "#111316"
   },
   "expressions": {
     "neutral": {
       "head": { "x": 0, "y": 0, "z": 0 },
       "eyes": {
-        "left": { "width": 14, "height": 18, "x": -24, "y": 0, "angle": 0 },
-        "right": { "width": 14, "height": 18, "x": 24, "y": 0, "angle": 0 },
-        "spacing": 48
+        "left": { "width": 14, "height": 45, "x": 0, "y": -1, "angle": 0 },
+        "right": { "width": 14, "height": 45, "x": 0, "y": -1, "angle": 0 },
+        "spacing": 13
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
     },
     "thinking": {
-      "head": { "x": 6, "y": -4, "z": -2 },
+      "head": { "x": 7.3, "y": 27.8, "z": -16.1 },
       "eyes": {
-        "left": { "width": 16, "height": 8, "x": -22, "y": -6, "angle": 12 },
-        "right": { "width": 16, "height": 8, "x": 26, "y": -6, "angle": -12 },
-        "spacing": 48
+        "left": { "width": 16, "height": 42, "x": 0, "y": -10, "angle": 6 },
+        "right": { "width": 16, "height": 42, "x": 0, "y": -10, "angle": -6 },
+        "spacing": 14
       },
       "perspective": 1,
-      "motion": { "eyes": "microSaccades", "body": "slowDrift" },
-      "colors": { "eyes": "#a855f7" }
+      "motion": { "eyes": "microSaccades", "body": "slowDrift" }
     },
     "searching": {
-      "head": { "x": -5, "y": 3, "z": 0 },
+      "head": { "x": -15.0, "y": 0.1, "z": -14.5 },
       "eyes": {
-        "left": { "width": 15, "height": 14, "x": -26, "y": 2, "angle": -8 },
-        "right": { "width": 15, "height": 14, "x": 22, "y": 2, "angle": 8 },
-        "spacing": 48
+        "left": { "width": 15, "height": 48, "x": -2, "y": 2, "angle": -8 },
+        "right": { "width": 15, "height": 48, "x": 2, "y": 2, "angle": 8 },
+        "spacing": 15
       },
       "perspective": 1,
-      "motion": { "eyes": "shake", "body": "slowDrift" },
-      "colors": { "eyes": "#60a5fa" }
+      "motion": { "eyes": "shake", "body": "slowDrift" }
     },
     "answering": {
-      "head": { "x": 0, "y": 2, "z": 0 },
+      "head": { "x": -4.2, "y": 14.3, "z": 11.2 },
       "eyes": {
-        "left": { "width": 15, "height": 20, "x": -24, "y": 2, "angle": 0 },
-        "right": { "width": 15, "height": 20, "x": 24, "y": 2, "angle": 0 },
-        "spacing": 48
+        "left": { "width": 15, "height": 42, "x": 0, "y": 0, "angle": 2 },
+        "right": { "width": 15, "height": 42, "x": 0, "y": 0, "angle": -2 },
+        "spacing": 13
       },
       "perspective": 1,
-      "motion": { "eyes": "microSaccades", "body": "slowDrift" },
-      "colors": { "eyes": "#10b981" }
+      "motion": { "eyes": "microSaccades", "body": "slowDrift" }
     },
     "happy": {
-      "head": { "x": 0, "y": 0, "z": 0 },
+      "head": { "x": 3.4, "y": 13.2, "z": 8.9 },
       "eyes": {
-        "left": { "width": 16, "height": 14, "x": -24, "y": -2, "angle": 15 },
-        "right": { "width": 16, "height": 14, "x": 24, "y": -2, "angle": -15 },
-        "spacing": 48
+        "left": { "width": 18, "height": 22, "x": 0, "y": 0, "angle": 12 },
+        "right": { "width": 18, "height": 22, "x": 0, "y": 0, "angle": -12 },
+        "spacing": 14
       },
       "perspective": 1,
-      "motion": { "eyes": "none", "body": "slowDrift" },
-      "colors": { "eyes": "#38bdf8" }
+      "motion": { "eyes": "none", "body": "slowDrift" }
+    },
+    "sleeping": {
+      "head": { "x": -19.2, "y": 15.2, "z": 11.8 },
+      "eyes": {
+        "left": { "width": 20, "height": 6, "x": 0, "y": 4, "angle": 0 },
+        "right": { "width": 20, "height": 6, "x": 0, "y": 4, "angle": 0 },
+        "spacing": 16
+      },
+      "perspective": 1,
+      "motion": { "eyes": "none", "body": "slowDrift" }
     }
   },
-  "expressionOrder": ["neutral", "thinking", "searching", "answering", "happy"],
+  "expressionOrder": ["neutral", "thinking", "searching", "answering", "happy", "sleeping"],
   "animations": {
     "idle": {
       "playbackMode": "loop",
       "blink": {
         "enabled": true,
-        "initialDelayMs": 1800,
-        "minIntervalMs": 2500,
-        "maxIntervalMs": 6000,
-        "durationMs": 140
+        "initialDelayMs": 2000,
+        "minIntervalMs": 2800,
+        "maxIntervalMs": 6500,
+        "durationMs": 180
       },
       "steps": [
         { "expression": "neutral", "holdMs": 3500, "transitionMs": 600, "transition": "smooth" },
-        { "expression": "happy", "holdMs": 1200, "transitionMs": 450, "transition": "spring" }
+        { "expression": "happy", "holdMs": 1000, "transitionMs": 450, "transition": "spring" },
+        { "expression": "neutral", "holdMs": 3000, "transitionMs": 550, "transition": "smooth" }
       ]
     },
     "thinking": {
@@ -93,41 +145,56 @@
       "blink": {
         "enabled": true,
         "initialDelayMs": 800,
-        "minIntervalMs": 1800,
-        "maxIntervalMs": 3500,
-        "durationMs": 130
-      },
-      "steps": [
-        { "expression": "thinking", "holdMs": 1400, "transitionMs": 350, "transition": "smooth" },
-        { "expression": "searching", "holdMs": 1200, "transitionMs": 400, "transition": "smooth" }
-      ]
-    },
-    "answering": {
-      "playbackMode": "loop",
-      "blink": {
-        "enabled": true,
-        "initialDelayMs": 1500,
-        "minIntervalMs": 2500,
-        "maxIntervalMs": 5000,
+        "minIntervalMs": 1600,
+        "maxIntervalMs": 3200,
         "durationMs": 140
       },
       "steps": [
-        { "expression": "answering", "holdMs": 2200, "transitionMs": 350, "transition": "spring" }
+        { "expression": "thinking", "holdMs": 1800, "transitionMs": 400, "transition": "smooth" },
+        { "expression": "searching", "holdMs": 1400, "transitionMs": 450, "transition": "smooth" }
+      ]
+    },
+    "answering": {
+      "playbackMode": "pingPong",
+      "blink": {
+        "enabled": true,
+        "initialDelayMs": 1200,
+        "minIntervalMs": 2200,
+        "maxIntervalMs": 4500,
+        "durationMs": 160
+      },
+      "steps": [
+        { "expression": "answering", "holdMs": 1200, "transitionMs": 300, "transition": "smooth" },
+        { "expression": "neutral", "holdMs": 800, "transitionMs": 250, "transition": "snappy" }
       ]
     },
     "happy": {
       "playbackMode": "once",
       "blink": {
         "enabled": true,
-        "initialDelayMs": 500,
-        "minIntervalMs": 2000,
-        "maxIntervalMs": 4000,
-        "durationMs": 140
+        "initialDelayMs": 400,
+        "minIntervalMs": 1200,
+        "maxIntervalMs": 2000,
+        "durationMs": 120
       },
       "steps": [
-        { "expression": "happy", "holdMs": 2000, "transitionMs": 300, "transition": "spring" }
+        { "expression": "happy", "holdMs": 1600, "transitionMs": 350, "transition": "spring" },
+        { "expression": "neutral", "holdMs": 600, "transitionMs": 400, "transition": "smooth" }
+      ]
+    },
+    "sleeping": {
+      "playbackMode": "loop",
+      "blink": {
+        "enabled": false,
+        "initialDelayMs": 0,
+        "minIntervalMs": 2500,
+        "maxIntervalMs": 5000,
+        "durationMs": 150
+      },
+      "steps": [
+        { "expression": "sleeping", "holdMs": 5000, "transitionMs": 800, "transition": "smooth" }
       ]
     }
   },
-  "animationOrder": ["idle", "thinking", "answering", "happy"]
+  "animationOrder": ["idle", "thinking", "answering", "happy", "sleeping"]
 }

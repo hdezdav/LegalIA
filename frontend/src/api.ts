@@ -148,6 +148,62 @@ export const api = {
     return response.json();
   },
 
+  async streamMessage(
+    request: ChatRequest,
+    onDelta: (token: string) => void,
+    signal?: AbortSignal
+  ): Promise<void> {
+    const response = await fetchWithAuth(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      body: JSON.stringify({ ...request, stream: true }),
+      signal,
+    });
+
+    if (!response.ok) {
+      let detail = 'Error en streaming';
+      try {
+        const err = await response.json();
+        detail = err.detail || detail;
+      } catch {}
+      throw new ApiError(detail, response.status);
+    }
+
+    if (!response.body) {
+      throw new ApiError('No response body for streaming', 500);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (dataStr === '[DONE]') {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(dataStr);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            onDelta(delta);
+          }
+        } catch {
+          // ignore partial JSON or malformed line
+        }
+      }
+    }
+  },
+
   async getModels(): Promise<Array<{
     id: string;
     name?: string;

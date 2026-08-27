@@ -258,6 +258,70 @@ class ChatService:
         outcome.finish_reason = "length" if completion.was_truncated else "stop"
         return outcome
 
+    async def answer_stream(
+        self,
+        session: AsyncSession,
+        *,
+        user: User,
+        question: str,
+        history: list[LLMMessage] | None = None,
+        external_conversation_id: str | None = None,
+        model: str | None = None,
+    ) -> AsyncIterator[str]:
+        """Stream conversational response token-by-token."""
+        started = time.perf_counter()
+        request_id = get_request_id() or uuid.uuid4().hex
+
+        # Run retrieval against the legal database
+        result = await self.retrieval.retrieve(session, question)
+        context_candidates, context_text = self._build_context(result.candidates)
+
+        # Build appropriate system prompt
+        if context_candidates and context_text.strip():
+            system_prompt = self._build_system_prompt(context_text)
+        elif self._is_conversational(question):
+            system_prompt = CONVERSATIONAL_SYSTEM_PROMPT
+        else:
+            system_prompt = self._build_general_system_prompt()
+
+        messages = list(history or [])
+        messages.append(LLMMessage(role=Role.USER, content=question))
+
+        full_text_chunks: list[str] = []
+        try:
+            async for token in self.llm.stream(system_prompt, messages, model=model):
+                full_text_chunks.append(token)
+                yield token
+        except LLMRefusal:
+            refusal_msg = "El modelo no pudo generar una respuesta para esta consulta."
+            yield refusal_msg
+            full_text_chunks.append(refusal_msg)
+
+        full_text = "".join(full_text_chunks)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+
+        # Persist conversation turn in database
+        try:
+            self._persist(
+                session,
+                user=user,
+                request_id=request_id,
+                question=question,
+                answer=full_text,
+                external_conversation_id=external_conversation_id,
+                model=model or self.llm.model_id,
+                input_tokens=max(1, len(system_prompt) // 4 + sum(len(m.content) for m in messages) // 4),
+                output_tokens=max(1, len(full_text) // 4),
+                latency_ms=latency_ms,
+                refused=False,
+                verification_status=VerificationStatus.NOT_VERIFIED,
+                result=result,
+                context_candidates=context_candidates,
+            )
+        except Exception as exc:
+            logger.warning("Failed to persist streaming turn", extra={"error": str(exc)})
+
+
     # --- Evidence ---------------------------------------------------------
 
     @dataclass(slots=True)

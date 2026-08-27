@@ -128,9 +128,10 @@ class MockLLMProvider(LLMProvider):
         messages: list[LLMMessage],
         max_tokens: int | None = None,
         temperature: float | None = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         """Yield the same text a `complete` call would, word by word."""
-        completion = await self.complete(system, messages, max_tokens, temperature)
+        completion = await self.complete(system, messages, max_tokens, temperature, model=model)
         for word in completion.text.split(" "):
             yield word + " "
 

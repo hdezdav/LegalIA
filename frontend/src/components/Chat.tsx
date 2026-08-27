@@ -27,9 +27,10 @@ import {
   FileTextIcon,
   BotIcon,
   PaperclipIcon,
+  SquareIcon,
+  PlusIcon,
 } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
-import { ThinkingBlock } from './ThinkingBlock';
 import './Chat.css';
 
 interface ChatProps {
@@ -39,15 +40,15 @@ interface ChatProps {
   memories?: Memory[];
   memoriesEnabled?: boolean;
   injectedText?: string | null;
-  sidebarCollapsed: boolean;
+  sidebarCollapsed?: boolean;
   selectedModelId?: string;
   sessionPromptTokens?: number;
   sessionCompletionTokens?: number;
   lastLatencyMs?: number;
   onSelectModel?: (modelId: string) => void;
   onRecordUsage?: (promptTokens: number, completionTokens: number, latencyMs: number) => void;
-  onUpdateConversation: (conversation: Conversation) => void;
-  onOpenSidebar: () => void;
+  onUpdateConversation: (conv: Conversation) => void;
+  onOpenSidebar?: () => void;
   onOpenPrompts?: () => void;
   onOpenAgents?: () => void;
   onInjectedTextConsumed?: () => void;
@@ -73,6 +74,7 @@ export function Chat({
   onOpenPrompts,
   onOpenAgents,
   onInjectedTextConsumed,
+  onNewChat,
 }: ChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,6 +86,7 @@ export function Chat({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const firstName = useMemo(() => {
     if (!currentUser?.full_name) return 'Doctor(a)';
@@ -123,6 +126,14 @@ export function Chat({
   const handleExport = () => {
     const markdown = exportConversationToMarkdown(conversation);
     downloadFile(`${conversation.title.replace(/\s+/g, '_')}.md`, markdown);
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
   };
 
   // Document Upload & MarkItDown Parsing Handler
@@ -236,20 +247,39 @@ export function Chat({
     setAttachedFiles([]);
 
     const isFirstMessage = conversation.messages.length === 0;
-    const updated: Conversation = {
+    const derivedTitle = isFirstMessage
+      ? displayContent.slice(0, 42) + (displayContent.length > 42 ? '...' : '')
+      : conversation.title;
+
+    const assistantMsgId = generateUUID();
+    const assistantPlaceholder: MessageType = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+
+    let currentConversation: Conversation = {
       ...conversation,
-      title: isFirstMessage ? displayContent.slice(0, 42) + (displayContent.length > 42 ? '...' : '') : conversation.title,
-      messages: [...conversation.messages, userMessage],
+      title: derivedTitle,
+      messages: [...conversation.messages, userMessage, assistantPlaceholder],
       updated_at: Date.now(),
     };
-    onUpdateConversation(updated);
+    onUpdateConversation(currentConversation);
+
     setInput('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
     setLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    let accumulatedText = '';
+    const startedAt = Date.now();
+
     try {
-      // Build context from active agent instructions and active memories
       const contextBlock = buildContextBlock({
         agent: activeAgent,
         memories,
@@ -257,66 +287,155 @@ export function Chat({
         specialization: conversation.specialization,
       });
 
-      const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = updated.messages.map((m, idx) => {
-        if (idx === updated.messages.length - 1) {
-          let fullContent = payloadContent;
-          if (contextBlock) {
-            fullContent = `${contextBlock}\n\n${fullContent}`;
-          }
-          return { role: m.role, content: fullContent };
-        }
-        return { role: m.role, content: m.content };
-      });
+      const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+        ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
+        {
+          role: 'user',
+          content: contextBlock ? `${contextBlock}\n\n${payloadContent}` : payloadContent,
+        },
+      ];
 
-      const response = await api.sendMessage({
-        model: selectedModelId,
-        messages: apiMessages,
-      });
+      await api.streamMessage(
+        {
+          model: selectedModelId,
+          messages: apiMessages,
+        },
+        (token: string) => {
+          accumulatedText += token;
+          currentConversation = {
+            ...currentConversation,
+            messages: currentConversation.messages.map((m) =>
+              m.id === assistantMsgId ? { ...m, content: accumulatedText } : m
+            ),
+            updated_at: Date.now(),
+          };
+          onUpdateConversation(currentConversation);
+        },
+        controller.signal
+      );
 
-      // Record token telemetry
-      if (response.usage && onRecordUsage) {
+      const latencyMs = Date.now() - startedAt;
+      if (onRecordUsage) {
         onRecordUsage(
-          response.usage.prompt_tokens || 0,
-          response.usage.completion_tokens || 0,
-          response.legalia.latency_ms || 0
+          Math.max(10, Math.floor(payloadContent.length / 4)),
+          Math.max(10, Math.floor(accumulatedText.length / 4)),
+          latencyMs
         );
       }
-
-      const assistantMessage: MessageType = {
-        id: generateUUID(),
-        role: 'assistant',
-        content: response.choices[0].message.content,
-        timestamp: Date.now(),
-        metadata: {
-          refused_for_lack_of_evidence: response.legalia.refused_for_lack_of_evidence,
-          verification_status: response.legalia.verification_status,
-          retrieval_candidate_count: response.legalia.retrieval_candidate_count,
-          context_chunk_count: response.legalia.context_chunk_count,
-          top_evidence_score: response.legalia.top_evidence_score,
-          reranked: response.legalia.reranked,
-          latency_ms: response.legalia.latency_ms,
-        },
-      };
-
-      onUpdateConversation({
-        ...updated,
-        messages: [...updated.messages, assistantMessage],
-        updated_at: Date.now(),
-      });
     } catch (err: any) {
-      const errorMessage: MessageType = {
-        id: generateUUID(),
-        role: 'assistant',
-        content: `No se pudo procesar la consulta: ${err?.message || 'error de conexión con el motor legal'}`,
-        timestamp: Date.now(),
-      };
-      onUpdateConversation({
-        ...updated,
-        messages: [...updated.messages, errorMessage],
-        updated_at: Date.now(),
-      });
+      if (err.name === 'AbortError') {
+        // User manually stopped streaming
+      } else {
+        const errorText = accumulatedText
+          ? `${accumulatedText}\n\n*[Respuesta interrumpida: ${err.message || 'error de conexión'}]*`
+          : `No se pudo procesar la consulta: ${err?.message || 'error de conexión con el motor legal'}`;
+        currentConversation = {
+          ...currentConversation,
+          messages: currentConversation.messages.map((m) =>
+            m.id === assistantMsgId ? { ...m, content: errorText } : m
+          ),
+          updated_at: Date.now(),
+        };
+        onUpdateConversation(currentConversation);
+      }
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (loading || conversation.messages.length < 2) return;
+    const lastUserIdx = [...conversation.messages].reverse().findIndex((m) => m.role === 'user');
+    if (lastUserIdx === -1) return;
+    const actualIdx = conversation.messages.length - 1 - lastUserIdx;
+    const lastUserMessage = conversation.messages[actualIdx];
+
+    // Remove the last assistant message
+    const trimmedMessages = conversation.messages.slice(0, actualIdx + 1);
+    const assistantMsgId = generateUUID();
+    const assistantPlaceholder: MessageType = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+
+    let currentConversation: Conversation = {
+      ...conversation,
+      messages: [...trimmedMessages, assistantPlaceholder],
+      updated_at: Date.now(),
+    };
+    onUpdateConversation(currentConversation);
+    setLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    let accumulatedText = '';
+    const startedAt = Date.now();
+
+    try {
+      const contextBlock = buildContextBlock({
+        agent: activeAgent,
+        memories,
+        memoriesEnabled,
+        specialization: conversation.specialization,
+      });
+
+      const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+        ...trimmedMessages.slice(0, -1).map((m) => ({ role: m.role, content: m.content })),
+        {
+          role: 'user',
+          content: contextBlock ? `${contextBlock}\n\n${lastUserMessage.content}` : lastUserMessage.content,
+        },
+      ];
+
+      await api.streamMessage(
+        {
+          model: selectedModelId,
+          messages: apiMessages,
+        },
+        (token: string) => {
+          accumulatedText += token;
+          currentConversation = {
+            ...currentConversation,
+            messages: currentConversation.messages.map((m) =>
+              m.id === assistantMsgId ? { ...m, content: accumulatedText } : m
+            ),
+            updated_at: Date.now(),
+          };
+          onUpdateConversation(currentConversation);
+        },
+        controller.signal
+      );
+
+      const latencyMs = Date.now() - startedAt;
+      if (onRecordUsage) {
+        onRecordUsage(
+          Math.max(10, Math.floor(lastUserMessage.content.length / 4)),
+          Math.max(10, Math.floor(accumulatedText.length / 4)),
+          latencyMs
+        );
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        // stopped
+      } else {
+        const errorText = accumulatedText
+          ? `${accumulatedText}\n\n*[Respuesta interrumpida: ${err.message || 'error'}]*`
+          : `No se pudo procesar la consulta: ${err?.message || 'error'}`;
+        currentConversation = {
+          ...currentConversation,
+          messages: currentConversation.messages.map((m) =>
+            m.id === assistantMsgId ? { ...m, content: errorText } : m
+          ),
+          updated_at: Date.now(),
+        };
+        onUpdateConversation(currentConversation);
+      }
+    } finally {
+      setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -366,7 +485,7 @@ export function Chat({
             </button>
           )}
 
-          {/* Model Selector (Claude / GPT / Gemini) */}
+          {/* Model Selector (Claude / GPT / Gemini / Grok) */}
           {onSelectModel && (
             <ModelSelector
               selectedModelId={selectedModelId}
@@ -387,6 +506,11 @@ export function Chat({
           )}
         </div>
         <div className="topbar-right">
+          {onNewChat && (
+            <button className="topbar-icon-btn" onClick={onNewChat} title="Nueva conversación">
+              <PlusIcon size={16} />
+            </button>
+          )}
           {onOpenPrompts && (
             <button className="topbar-icon-btn" onClick={onOpenPrompts} title="Biblioteca de prompts">
               <FileTextIcon size={16} />
@@ -466,14 +590,25 @@ export function Chat({
                     <button type="button" className="capsule-icon-btn" title="Dictado por voz">
                       <MicIcon size={17} />
                     </button>
-                    <button
-                      type="submit"
-                      disabled={(!input.trim() && attachedFiles.length === 0) || loading || isUploading}
-                      className="capsule-send-btn"
-                      title="Enviar mensaje"
-                    >
-                      <ArrowUpIcon size={17} />
-                    </button>
+                    {loading ? (
+                      <button
+                        type="button"
+                        onClick={handleStopGeneration}
+                        className="capsule-stop-btn"
+                        title="Detener generación"
+                      >
+                        <SquareIcon size={14} />
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={(!input.trim() && attachedFiles.length === 0) || isUploading}
+                        className="capsule-send-btn"
+                        title="Enviar mensaje"
+                      >
+                        <ArrowUpIcon size={17} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </form>
@@ -494,7 +629,7 @@ export function Chat({
           </div>
         ) : (
           <div className="message-list">
-            {conversation.messages.map((message) => (
+            {conversation.messages.map((message, idx) => (
               <div key={message.id}>
                 {message.attachedFiles && message.attachedFiles.length > 0 && (
                   <div className="message-attached-file-badge">
@@ -505,16 +640,13 @@ export function Chat({
                     </span>
                   </div>
                 )}
-                <Message message={message} />
+                <Message
+                  message={message}
+                  isStreaming={loading && idx === conversation.messages.length - 1 && message.role === 'assistant'}
+                  onRegenerate={idx === conversation.messages.length - 1 && message.role === 'assistant' ? handleRegenerate : undefined}
+                />
               </div>
             ))}
-
-            {loading && (
-              <ThinkingBlock
-                modelName={selectedModelId || 'Claude Sonnet 4.6'}
-                isGenerating={true}
-              />
-            )}
 
             <div ref={messagesEndRef} />
           </div>
@@ -573,14 +705,25 @@ export function Chat({
                 </button>
               </div>
               <div className="shell-right-actions">
-                <button
-                  type="submit"
-                  disabled={(!input.trim() && attachedFiles.length === 0) || loading || isUploading}
-                  className="capsule-send-btn"
-                  title="Enviar"
-                >
-                  <ArrowUpIcon size={16} />
-                </button>
+                {loading ? (
+                  <button
+                    type="button"
+                    onClick={handleStopGeneration}
+                    className="capsule-stop-btn"
+                    title="Detener generación"
+                  >
+                    <SquareIcon size={14} />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={(!input.trim() && attachedFiles.length === 0) || isUploading}
+                    className="capsule-send-btn"
+                    title="Enviar"
+                  >
+                    <ArrowUpIcon size={16} />
+                  </button>
+                )}
               </div>
             </div>
           </form>

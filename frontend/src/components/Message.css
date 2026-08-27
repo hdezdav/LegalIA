@@ -20,10 +20,6 @@
   color: rgb(var(--text-secondary));
 }
 
-/* The assistant avatar renders its own themed circle and border, so this
-   wrapper stays transparent. It previously painted `var(--anthropic-brand)`,
-   a variable that is not defined anywhere in the codebase, behind a rounded
-   square — which double-layered against the round avatar. */
 .msg-avatar-assistant {
   background: transparent;
   border-radius: 50%;
@@ -35,11 +31,31 @@
   padding-top: 2px;
 }
 
+.msg-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: calc(var(--spacing-unit) * 1.5);
+}
+
 .msg-name {
   font-size: 13px;
   font-weight: 600;
   color: rgb(var(--text-secondary));
-  margin-bottom: calc(var(--spacing-unit) * 1.5);
+}
+
+.msg-streaming-badge {
+  font-size: 11px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  animation: pulseStreaming 1.5s infinite;
+}
+
+@keyframes pulseStreaming {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .msg-content {
@@ -80,27 +96,85 @@
   text-decoration: underline;
 }
 
-.msg-content code {
+.inline-code {
   padding: 2px 5px;
   background: rgb(var(--surface-tertiary));
   border-radius: 4px;
   font-size: 0.875em;
   color: rgb(var(--text-secondary));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-.msg-content pre {
-  margin: calc(var(--spacing-unit) * 3) 0;
-  padding: calc(var(--spacing-unit) * 4);
-  background: rgb(var(--surface-primary));
-  border: 1px solid rgb(var(--border-light));
-  border-radius: var(--radius-md);
+/* LibreChat Code Block with Header */
+.librechat-code-block {
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #0d0d0d;
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.85rem;
+  background-color: #262626;
+  color: #b4b4b4;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.code-lang-tag {
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #b4b4b4;
+  font-size: 11.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.code-copy-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.code-pre {
+  margin: 0 !important;
+  padding: 0.85rem 1rem !important;
+  background: transparent !important;
+  border: none !important;
   overflow-x: auto;
 }
 
-.msg-content pre code {
-  padding: 0;
-  background: none;
-  color: rgb(var(--text-secondary));
+.code-pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e5e5e5;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Streaming blinking cursor */
+.streaming-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: #38bdf8;
+  font-weight: 700;
+  animation: cursorBlink 0.85s infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .msg-content blockquote {

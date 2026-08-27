@@ -15,6 +15,7 @@ The route stays declarative — resolve the caller, hand the question to
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import ChatPrincipal, DbSession
 from app.core.config import settings
@@ -271,9 +272,6 @@ async def chat_completions(
             detail="Request must contain at least one user message",
         ) from exc
 
-    if payload.stream:
-        logger.info("streaming requested; returning a complete completion instead")
-
     history = [
         LLMMessage(role=Role(message.role), content=message.content)
         for message in payload.history()
@@ -282,6 +280,83 @@ async def chat_completions(
 
     user = principal.resolve_subject(payload.user)
     service = _build_service()
+
+    if payload.stream:
+        selected_model = payload.model if payload.model and payload.model != "legalia" else settings.LLM_MODEL
+
+        async def sse_generator():
+            import json
+            import time
+            import uuid
+
+            req_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
+            created_ts = int(time.time())
+
+            try:
+                async for token in service.answer_stream(
+                    session,
+                    user=user,
+                    question=question,
+                    history=history,
+                    model=payload.model if payload.model and payload.model != "legalia" else None,
+                ):
+                    chunk = {
+                        "id": req_id,
+                        "object": "chat.completion.chunk",
+                        "created": created_ts,
+                        "model": selected_model,
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"content": token},
+                                "finish_reason": None,
+                            }
+                        ],
+                    }
+                    yield f"data: {json.dumps(chunk)}\n\n"
+
+                final_chunk = {
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": selected_model,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {},
+                            "finish_reason": "stop",
+                        }
+                    ],
+                }
+                yield f"data: {json.dumps(final_chunk)}\n\n"
+                yield "data: [DONE]\n\n"
+            except Exception as e:
+                logger.error("SSE stream error", extra={"error": str(e)})
+                err_chunk = {
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": selected_model,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"content": "\n\n[Error al generar la respuesta en streaming]"},
+                            "finish_reason": "error",
+                        }
+                    ],
+                }
+                yield f"data: {json.dumps(err_chunk)}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            sse_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     try:
         outcome = await service.answer(

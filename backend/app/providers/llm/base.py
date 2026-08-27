@@ -114,6 +114,7 @@ class LLMProvider(ABC):
         messages: list[LLMMessage],
         max_tokens: int | None = None,
         temperature: float | None = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream text deltas.
 

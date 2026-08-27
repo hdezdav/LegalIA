@@ -201,6 +201,24 @@
   box-shadow: none;
 }
 
+.capsule-stop-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  color: var(--text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.capsule-stop-btn:hover {
+  filter: brightness(1.2);
+  transform: scale(1.06);
+}
+
 /* Empty State Bottom Footer */
 .empty-bottom-footer {
   position: absolute;

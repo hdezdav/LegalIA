@@ -134,3 +134,72 @@ class OpenAICompatibleProvider(LLMProvider):
                 "cached_tokens": usage.get("prompt_tokens_details", {}).get("cached_tokens", 0),
             },
         )
+
+    async def stream(
+        self,
+        system: str,
+        messages: list[LLMMessage],
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        model: str | None = None,
+    ) -> AsyncIterator[str]:
+        if not messages:
+            raise LLMError("At least one message is required")
+
+        active_model = model or self.model
+        active_max_tokens = max_tokens or self.max_tokens
+        active_temp = self.temperature if temperature is None else temperature
+
+        payload_messages: list[dict[str, str]] = []
+        if system.strip():
+            payload_messages.append({"role": "system", "content": system})
+
+        for msg in messages:
+            payload_messages.append({
+                "role": "user" if msg.role == Role.USER else "assistant",
+                "content": msg.content,
+            })
+
+        body: dict[str, Any] = {
+            "model": active_model,
+            "messages": payload_messages,
+            "max_tokens": active_max_tokens,
+            "temperature": active_temp,
+            "stream": True,
+        }
+
+        try:
+            req = self._client.build_request("POST", "/chat/completions", json=body)
+            resp = await self._client.send(req, stream=True)
+        except Exception as exc:
+            raise LLMError(f"LLM streaming request failed: {type(exc).__name__}") from exc
+
+        if resp.status_code != 200:
+            err_text = await resp.aread()
+            await resp.aclose()
+            raise LLMError(f"LLM streaming API error (HTTP {resp.status_code}): {err_text.decode()[:200]}")
+
+        try:
+            async for line in resp.aiter_lines():
+                if not line:
+                    continue
+                line = line.strip()
+                if not line.startswith("data:"):
+                    continue
+                data_str = line[5:].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    import json
+                    chunk = json.loads(data_str)
+                    choices = chunk.get("choices", [])
+                    if choices:
+                        delta = choices[0].get("delta", {})
+                        content = delta.get("content")
+                        if content:
+                            yield content
+                except Exception:
+                    continue
+        finally:
+            await resp.aclose()
+

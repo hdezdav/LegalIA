@@ -15,7 +15,6 @@ import { buildContextBlock } from '../context';
 import { Message } from './Message';
 import { SpecializationMenu } from './SpecializationMenu';
 import { ModelSelector } from './ModelSelector';
-import { UsageBar } from './UsageBar';
 import { FileRow } from './Chat/Files/FileRow';
 import { AttachFileMenu } from './Chat/Files/AttachFileMenu';
 import {
@@ -42,11 +41,7 @@ interface ChatProps {
   injectedText?: string | null;
   sidebarCollapsed?: boolean;
   selectedModelId?: string;
-  sessionPromptTokens?: number;
-  sessionCompletionTokens?: number;
-  lastLatencyMs?: number;
   onSelectModel?: (modelId: string) => void;
-  onRecordUsage?: (promptTokens: number, completionTokens: number, latencyMs: number) => void;
   onUpdateConversation: (conv: Conversation) => void;
   onOpenSidebar?: () => void;
   onOpenPrompts?: () => void;
@@ -64,11 +59,7 @@ export function Chat({
   injectedText = null,
   sidebarCollapsed,
   selectedModelId = 'claude-sonnet-4.6',
-  sessionPromptTokens = 0,
-  sessionCompletionTokens = 0,
-  lastLatencyMs = 0,
   onSelectModel,
-  onRecordUsage,
   onUpdateConversation,
   onOpenSidebar,
   onOpenPrompts,
@@ -277,7 +268,6 @@ export function Chat({
     abortControllerRef.current = controller;
 
     let accumulatedText = '';
-    const startedAt = Date.now();
 
     try {
       const contextBlock = buildContextBlock({
@@ -314,14 +304,6 @@ export function Chat({
         controller.signal
       );
 
-      const latencyMs = Date.now() - startedAt;
-      if (onRecordUsage) {
-        onRecordUsage(
-          Math.max(10, Math.floor(payloadContent.length / 4)),
-          Math.max(10, Math.floor(accumulatedText.length / 4)),
-          latencyMs
-        );
-      }
     } catch (err: any) {
       if (err.name === 'AbortError') {
         // User manually stopped streaming
@@ -372,7 +354,6 @@ export function Chat({
     const controller = new AbortController();
     abortControllerRef.current = controller;
     let accumulatedText = '';
-    const startedAt = Date.now();
 
     try {
       const contextBlock = buildContextBlock({
@@ -408,15 +389,6 @@ export function Chat({
         },
         controller.signal
       );
-
-      const latencyMs = Date.now() - startedAt;
-      if (onRecordUsage) {
-        onRecordUsage(
-          Math.max(10, Math.floor(lastUserMessage.content.length / 4)),
-          Math.max(10, Math.floor(accumulatedText.length / 4)),
-          latencyMs
-        );
-      }
     } catch (err: any) {
       if (err.name === 'AbortError') {
         // stopped
@@ -656,14 +628,6 @@ export function Chat({
       {/* Sticky Bottom Composer for active conversations */}
       {!isEmpty && (
         <div className="chat-input-area">
-          {/* Real-time Token Usage & Latency Bar */}
-          <UsageBar
-            totalPromptTokens={sessionPromptTokens}
-            totalCompletionTokens={sessionCompletionTokens}
-            lastLatencyMs={lastLatencyMs}
-            activeModelId={selectedModelId}
-          />
-
           <form onSubmit={handleSubmit} className="input-shell-capsule">
             {/* Attached File Chips (LibreChat Style) */}
             <FileRow

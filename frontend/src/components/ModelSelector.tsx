@@ -31,7 +31,6 @@ export interface ScrapedModelOption {
   name: string;
   provider: 'Anthropic' | 'Google' | 'OpenAI' | 'xAI' | 'Legalia';
   description: string;
-  contextLimit: string;
   badge?: string;
   owned_by?: string;
 }
@@ -43,7 +42,6 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     name: 'Legalia Auto',
     provider: 'Legalia',
     description: 'Enrutador jurídico automático con verificación RAG estricta',
-    contextLimit: '200k tokens',
     badge: 'RAG Verificado',
   },
 
@@ -53,7 +51,6 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     name: 'Claude Sonnet 4.6',
     provider: 'Anthropic',
     description: 'Máxima precisión en razonamiento procesal y jurisprudencia colombiana',
-    contextLimit: '200k tokens',
     badge: 'Recomendado',
   },
   {
@@ -61,35 +58,30 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     name: 'Claude Sonnet 5',
     provider: 'Anthropic',
     description: 'Excelente balance velocidad/precisión en redacción jurídica',
-    contextLimit: '200k tokens',
   },
   {
     id: 'claude-opus-5',
     name: 'Claude Opus 5',
     provider: 'Anthropic',
     description: 'Análisis profundo de casaciones y expedientes extensos',
-    contextLimit: '200k tokens',
   },
   {
     id: 'claude-opus-4.8',
     name: 'Claude Opus 4.8',
     provider: 'Anthropic',
     description: 'Versión optimizada para análisis de precedentes jurisprudenciales',
-    contextLimit: '200k tokens',
   },
   {
     id: 'claude-opus-4.6',
     name: 'Claude Opus 4.6',
     provider: 'Anthropic',
     description: 'Modelo robusto para investigación normativa compleja',
-    contextLimit: '200k tokens',
   },
   {
     id: 'claude-haiku-4.5',
     name: 'Claude Haiku 4.5',
     provider: 'Anthropic',
     description: 'Respuestas procesales ultrarrápidas y de bajo costo',
-    contextLimit: '200k tokens',
     badge: 'Rápido',
   },
 
@@ -99,42 +91,36 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     name: 'GPT-5.6 Sol',
     provider: 'OpenAI',
     description: 'Generación creativa y estructuración de minutas contractuales',
-    contextLimit: '128k tokens',
   },
   {
     id: 'gpt-5.6-terra',
     name: 'GPT-5.6 Terra',
     provider: 'OpenAI',
     description: 'Modelo optimizado para análisis documental y síntesis',
-    contextLimit: '128k tokens',
   },
   {
     id: 'gpt-5.6-luna',
     name: 'GPT-5.6 Luna',
     provider: 'OpenAI',
     description: 'Análisis jurídico multimodal y generación de argumentos',
-    contextLimit: '128k tokens',
   },
   {
     id: 'gpt-5.5',
     name: 'GPT-5.5',
     provider: 'OpenAI',
     description: 'Redacción de demandas y escritos jurídicos estructurados',
-    contextLimit: '128k tokens',
   },
   {
     id: 'gpt-5.4',
     name: 'GPT-5.4',
     provider: 'OpenAI',
     description: 'Modelo estable para consultas jurídicas generales',
-    contextLimit: '128k tokens',
   },
   {
     id: 'gpt-5.4-mini',
     name: 'GPT-5.4 Mini',
     provider: 'OpenAI',
     description: 'Versión eficiente para consultas rápidas y borradores',
-    contextLimit: '128k tokens',
     badge: 'Económico',
   },
 
@@ -143,37 +129,32 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     id: 'gemini-3.7-flash',
     name: 'Gemini 3.7 Flash',
     provider: 'Google',
-    description: 'Ventana de contexto de 1M tokens para expedientes completos',
-    contextLimit: '1M tokens',
-    badge: '1M Tokens',
+    description: 'Motor multimodal de alta velocidad para expedientes y doctrinas',
+    badge: 'Rápido',
   },
   {
     id: 'gemini-3.6-flash',
     name: 'Gemini 3.6 Flash',
     provider: 'Google',
     description: 'Procesamiento ultrarrápido de documentos extensos',
-    contextLimit: '1M tokens',
   },
   {
     id: 'gemini-3.5-flash',
     name: 'Gemini 3.5 Flash',
     provider: 'Google',
-    description: 'Análisis multimodal con contexto extendido',
-    contextLimit: '1M tokens',
+    description: 'Análisis multimodal y extracción conceptual',
   },
   {
     id: 'gemini-3.1-pro',
     name: 'Gemini 3.1 Pro',
     provider: 'Google',
     description: 'Razonamiento complejo y síntesis de múltiples fuentes',
-    contextLimit: '1M tokens',
   },
   {
     id: 'gemini-3-flash-preview',
     name: 'Gemini 3 Flash Preview',
     provider: 'Google',
     description: 'Acceso anticipado a capacidades experimentales',
-    contextLimit: '1M tokens',
     badge: 'Preview',
   },
 
@@ -183,14 +164,12 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
     name: 'Grok 4.6',
     provider: 'xAI',
     description: 'Motor de razonamiento avanzado con contexto en tiempo real',
-    contextLimit: '128k tokens',
   },
   {
     id: 'grok-4.5',
     name: 'Grok 4.5',
     provider: 'xAI',
     description: 'Análisis y síntesis de información legal actualizada',
-    contextLimit: '128k tokens',
   },
 ];
 
@@ -209,13 +188,12 @@ function mapRawModelToOption(raw: {
   const owned = (raw.owned_by || '').toLowerCase();
 
   // If backend provided enriched fields from Nodule
-  if (raw.name && raw.provider && raw.description && raw.context_limit_label) {
+  if (raw.name && raw.provider && raw.description) {
     return {
       id: raw.id,
       name: raw.name,
       provider: (raw.provider as any) || 'Legalia',
       description: raw.description,
-      contextLimit: raw.context_limit_label,
       badge: raw.badge || undefined,
       owned_by: raw.owned_by,
     };
@@ -227,7 +205,6 @@ function mapRawModelToOption(raw: {
       name: 'Legalia Auto',
       provider: 'Legalia',
       description: 'Enrutador jurídico automático con verificación RAG estricta',
-      contextLimit: '200k tokens',
       badge: 'RAG Verificado',
     };
   }
@@ -246,7 +223,6 @@ function mapRawModelToOption(raw: {
       name,
       provider: 'Anthropic',
       description: 'Motor Anthropic con alta capacidad de análisis doctrinal y jurisprudencial',
-      contextLimit: '200k tokens',
       badge: id === 'claude-sonnet-4.6' ? 'Recomendado' : id.includes('haiku') ? 'Rápido' : undefined,
     };
   }
@@ -265,9 +241,8 @@ function mapRawModelToOption(raw: {
       id,
       name,
       provider: 'Google',
-      description: 'Motor multimodal de Google con ventana de contexto extendida',
-      contextLimit: '1M tokens',
-      badge: id.includes('flash') ? '1M Tokens' : id.includes('preview') ? 'Preview' : undefined,
+      description: 'Motor multimodal de Google optimizado para expedientes',
+      badge: id.includes('preview') ? 'Preview' : undefined,
     };
   }
 
@@ -287,7 +262,6 @@ function mapRawModelToOption(raw: {
       name,
       provider: 'OpenAI',
       description: 'Motor OpenAI para redacción contractual y estructuración de alegatos',
-      contextLimit: '128k tokens',
       badge: id.includes('mini') ? 'Económico' : undefined,
     };
   }
@@ -298,7 +272,6 @@ function mapRawModelToOption(raw: {
       name: id.replace('grok-', 'Grok '),
       provider: 'xAI',
       description: 'Motor de razonamiento xAI',
-      contextLimit: '128k tokens',
     };
   }
 
@@ -307,7 +280,6 @@ function mapRawModelToOption(raw: {
     name: id,
     provider: 'Legalia',
     description: `Modelo disponible en Nodule (${id})`,
-    contextLimit: '128k tokens',
   };
 }
 
@@ -322,30 +294,44 @@ export function ModelSelector({ selectedModelId, onSelectModel }: ModelSelectorP
   const [loadingModels, setLoadingModels] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch live models from Nodule endpoint via backend API
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Fetch models dynamically from /api/v1/models (Nodule API)
   useEffect(() => {
     let isMounted = true;
-    const fetchLiveModels = async () => {
-      setLoadingModels(true);
+    async function loadDynamicModels() {
       try {
-        const rawList = await api.getModels();
-        if (rawList && rawList.length > 0 && isMounted) {
-          const filtered = rawList.filter(
-            (r) =>
-              !r.id.toLowerCase().includes('image') &&
-              !r.id.toLowerCase().includes('dall') &&
-              !r.id.toLowerCase().includes('embed')
-          );
-          const mapped = filtered.map(mapRawModelToOption);
-          setModels(mapped);
+        setLoadingModels(true);
+        const dynamicModels = await api.getModels();
+        if (isMounted && dynamicModels && dynamicModels.length > 0) {
+          const parsed = dynamicModels.map(mapRawModelToOption);
+          // Combine with Legalia Auto at the top
+          const hasLegalia = parsed.some(m => m.id === 'legalia');
+          const finalModels = hasLegalia ? parsed : [DEFAULT_MODELS[0], ...parsed];
+          setModels(finalModels);
         }
-      } catch {
-        // use fallback DEFAULT_MODELS
+      } catch (err) {
+        console.warn('Using fallback models list:', err);
       } finally {
         if (isMounted) setLoadingModels(false);
       }
-    };
-    fetchLiveModels();
+    }
+
+    loadDynamicModels();
     return () => {
       isMounted = false;
     };
@@ -356,20 +342,6 @@ export function ModelSelector({ selectedModelId, onSelectModel }: ModelSelectorP
     DEFAULT_MODELS.find((m) => m.id === selectedModelId) ||
     models[0] ||
     DEFAULT_MODELS[0];
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
 
   const handleSelect = (model: ScrapedModelOption) => {
     onSelectModel(model.id);
@@ -440,7 +412,6 @@ export function ModelSelector({ selectedModelId, onSelectModel }: ModelSelectorP
                           {model.badge && (
                             <span className="model-card-badge">{model.badge}</span>
                           )}
-                          <span className="model-card-limit">{model.contextLimit}</span>
                         </div>
                       </div>
 

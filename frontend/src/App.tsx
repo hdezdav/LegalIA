@@ -52,11 +52,6 @@ export function App() {
     return localStorage.getItem(SELECTED_MODEL_KEY) || 'claude-sonnet-4.6';
   });
 
-  // Token Telemetry State
-  const [sessionPromptTokens, setSessionPromptTokens] = useState(0);
-  const [sessionCompletionTokens, setSessionCompletionTokens] = useState(0);
-  const [lastLatencyMs, setLastLatencyMs] = useState(0);
-
   // Conversations State
   const [conversations, setConversations] = useState<Conversation[]>(() => loadConversations());
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
@@ -242,13 +237,6 @@ export function App() {
     setCurrentView('landing');
   };
 
-  // Telemetry usage recorder
-  const handleRecordUsage = (prompt: number, completion: number, latency: number) => {
-    setSessionPromptTokens((prev) => prev + prompt);
-    setSessionCompletionTokens((prev) => prev + completion);
-    setLastLatencyMs(latency);
-  };
-
   // Prompts Handlers
   const handleSavePrompt = (prompt: PromptTemplate) => {
     setPrompts((prev) => {
@@ -405,11 +393,7 @@ export function App() {
           injectedText={injectedText}
           sidebarCollapsed={!sidePanelOpen}
           selectedModelId={selectedModelId}
-          sessionPromptTokens={sessionPromptTokens}
-          sessionCompletionTokens={sessionCompletionTokens}
-          lastLatencyMs={lastLatencyMs}
           onSelectModel={setSelectedModelId}
-          onRecordUsage={handleRecordUsage}
           onUpdateConversation={handleUpdateConversation}
           onOpenSidebar={() => {
             setSidePanelOpen(true);

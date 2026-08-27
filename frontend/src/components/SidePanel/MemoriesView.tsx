@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Memory, MemoriesConfig } from '../../types';
+import { generateUUID } from '../../utils';
 import { PlusIcon, TrashIcon, BrainIcon, XIcon, CheckIcon } from '../Icons';
 
 interface MemoriesViewProps {
@@ -33,7 +34,7 @@ export function MemoriesView({
     if (!newKey.trim() || !newValue.trim()) return;
 
     const memory: Memory = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       key: newKey.trim(),
       value: newValue.trim(),
       tokens: Math.ceil((newKey.length + newValue.length) / 4),

@@ -1,4 +1,5 @@
 import { Conversation } from './types';
+import { generateUUID } from './utils';
 
 const STORAGE_KEY = 'legalia_conversations';
 
@@ -25,7 +26,7 @@ export function saveConversations(conversations: Conversation[]): void {
 export function createConversation(): Conversation {
   const now = Date.now();
   return {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     title: 'Nueva conversación',
     specialization: 'general',
     messages: [],

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PromptTemplate } from '../../types';
+import { generateUUID } from '../../utils';
 import { PlusIcon, TrashIcon, SearchIcon, StarIcon, StarFilledIcon, FileTextIcon } from '../Icons';
 
 interface PromptsViewProps {
@@ -36,7 +37,7 @@ export function PromptsView({
 
   const handleCreateNew = () => {
     setEditingPrompt({
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: '',
       body: '',
       description: '',

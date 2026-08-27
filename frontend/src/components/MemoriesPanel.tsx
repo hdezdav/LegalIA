@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Memory, MemoriesConfig } from '../types';
 import { estimateTokens, getTotalMemoryTokens } from '../library';
 import { getTranslations } from '../i18n';
+import { generateUUID } from '../utils';
 import { PlusIcon, EditIcon, TrashIcon, ToggleOnIcon, ToggleOffIcon } from './Icons';
 import './MemoriesPanel.css';
 
@@ -52,7 +53,7 @@ export function MemoriesPanel({
 
     const now = Date.now();
     const saved: Memory = {
-      id: editing?.id || crypto.randomUUID(),
+      id: editing?.id || generateUUID(),
       key: formKey.trim(),
       value: formValue.trim(),
       tokens: estimateTokens(formValue.trim()),

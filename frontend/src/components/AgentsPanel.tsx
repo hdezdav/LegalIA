@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Agent, LegalSpecializationId } from '../types';
 import { SPECIALIZATIONS } from '../constants';
 import { getTranslations } from '../i18n';
+import { generateUUID } from '../utils';
 import { PlusIcon, EditIcon, TrashIcon, CheckIcon } from './Icons';
 import './AgentsPanel.css';
 
@@ -58,7 +59,7 @@ export function AgentsPanel({
 
     const now = Date.now();
     const saved: Agent = {
-      id: editing?.id || crypto.randomUUID(),
+      id: editing?.id || generateUUID(),
       name: formName.trim(),
       description: formDescription.trim(),
       icon: formIcon,

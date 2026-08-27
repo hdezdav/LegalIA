@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Agent, LegalSpecializationId } from '../../types';
 import { SPECIALIZATIONS } from '../../constants';
+import { generateUUID } from '../../utils';
 import {
   PlusIcon,
   ChevronDownIcon,
@@ -73,7 +74,7 @@ export function AgentsView({
     if (!name.trim()) return;
 
     const agent: Agent = {
-      id: selectedAgentId === 'new' ? crypto.randomUUID() : selectedAgentId,
+      id: selectedAgentId === 'new' ? generateUUID() : selectedAgentId,
       name: name.trim(),
       description: description.trim(),
       icon,

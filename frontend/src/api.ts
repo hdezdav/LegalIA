@@ -1,4 +1,5 @@
 import { TokenResponse, User, ChatRequest, ChatResponse } from './types';
+import { generateUUID } from './utils';
 
 const API_BASE = '/api/v1';
 
@@ -184,7 +185,7 @@ export const api = {
 
     const data = await response.json();
     return {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       filename: data.filename,
       content_type: data.content_type,
       markdown: data.markdown,

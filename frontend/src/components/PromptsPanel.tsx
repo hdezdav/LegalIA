@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PromptTemplate } from '../types';
 import { parseVariables, fillTemplate } from '../library';
 import { getTranslations } from '../i18n';
+import { generateUUID } from '../utils';
 import { PlusIcon, StarIcon, StarFilledIcon, EditIcon, TrashIcon, CopyIcon, SearchIcon } from './Icons';
 import './PromptsPanel.css';
 
@@ -64,7 +65,7 @@ export function PromptsPanel({ prompts, onSave, onDelete, onUse, onClose }: Prom
 
     const now = Date.now();
     const saved: PromptTemplate = {
-      id: editing?.id || crypto.randomUUID(),
+      id: editing?.id || generateUUID(),
       name: formName.trim(),
       body: formBody.trim(),
       description: formDescription.trim() || undefined,
@@ -110,7 +111,7 @@ export function PromptsPanel({ prompts, onSave, onDelete, onUse, onClose }: Prom
     const now = Date.now();
     const duplicate: PromptTemplate = {
       ...prompt,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: `${prompt.name} (copia)`,
       favorite: false,
       created_at: now,

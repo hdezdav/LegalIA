@@ -11,8 +11,10 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import CurrentSuperuser, DbSession
 from app.core.logging import get_logger
+from app.db.models.chunk import Chunk
 from app.db.models.document import Document
 from app.db.models.enums import DocumentStatus, DocumentType, Jurisdiction
+from app.db.models.user import User
 from app.providers.embeddings import get_embedding_provider
 from app.services.ingestion_service import IngestionService
 
@@ -48,6 +50,19 @@ class DocumentListResponse(BaseModel):
     total: int
 
 
+class CorpusIngestRequest(BaseModel):
+    url: str
+    source_name: str = "Web scraper"
+    document_type: DocumentType = DocumentType.LEY
+    jurisdiction: Jurisdiction = Jurisdiction.NACIONAL
+
+
+class CorpusIngestResponse(BaseModel):
+    success: bool
+    message: str
+    documents_ingested: int
+
+
 @router.post(
     "/documents",
     response_model=IngestionResponse,
@@ -55,6 +70,8 @@ class DocumentListResponse(BaseModel):
     summary="Ingest a new legal document",
 )
 async def ingest_document(
+    db: DbSession,
+    current_user: CurrentSuperuser,
     file: UploadFile = File(..., description="PDF, DOCX, or TXT legal document"),
     title: str = Form(..., description="Document title"),
     external_id: str | None = Form(None, description="External identifier (e.g. LEY_1437_2011)"),
@@ -68,8 +85,6 @@ async def ingest_document(
     source_name: str = Form("Upload admin", description="Source name"),
     source_url: str | None = Form(None, description="Official source URL"),
     skip_if_duplicate: bool = Form(True, description="Skip if duplicate detected"),
-    db: Session = Depends(get_db),
-    current_user: CurrentSuperuser = Depends(),
 ) -> IngestionResponse:
     """Ingest a legal document with automatic chunking and embedding.
 
@@ -158,13 +173,13 @@ async def ingest_document(
     response_model=IngestionResponse,
     status_code=status.HTTP_200_OK,
     summary="Re-ingest an existing document",
-    dependencies=[Depends(require_admin)],
+    
 )
 async def reingest_document(
     document_id: str,
+    db: DbSession,
+    current_user: CurrentSuperuser,
     file: UploadFile = File(..., description="PDF, DOCX, or TXT legal document"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ) -> IngestionResponse:
     """Re-ingest an existing document (replaces all chunks).
 
@@ -228,11 +243,11 @@ async def reingest_document(
     response_model=DocumentListResponse,
     status_code=status.HTTP_200_OK,
     summary="List all documents",
-    dependencies=[Depends(require_admin)],
+    
 )
 async def list_documents(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentSuperuser,
 ) -> DocumentListResponse:
     """List all documents in the corpus with chunk counts.
 
@@ -283,9 +298,9 @@ async def list_documents(
 )
 async def delete_document(
     document_id: str,
-    db: Session = Depends(get_db),
-    current_user: CurrentSuperuser = Depends(),
-) -> None:
+    db: DbSession,
+    current_user: CurrentSuperuser,
+):
     """Delete a document and all its chunks.
 
     **Admin only.** This is irreversible.
@@ -308,3 +323,39 @@ async def delete_document(
 
     db.delete(document)
     db.commit()
+
+
+@router.post("/corpus/ingest")
+async def ingest_corpus(
+    request: CorpusIngestRequest,
+    db: DbSession,
+    current_superuser: CurrentSuperuser,
+) -> CorpusIngestResponse:
+    """Ingest legal corpus from a URL (web scraping).
+
+    **Admin only.** Scrapes the URL and ingests all found documents.
+    """
+    from app.services.corpus_scraper import CorpusScraper
+
+    scraper = CorpusScraper(db=db)
+
+    try:
+        count = await scraper.scrape_and_ingest(
+            url=request.url,
+            source_name=request.source_name,
+            document_type=request.document_type,
+            jurisdiction=request.jurisdiction,
+        )
+
+        return CorpusIngestResponse(
+            success=True,
+            message=f"Successfully ingested {count} documents from {request.url}",
+            documents_ingested=count,
+        )
+    except Exception as exc:
+        logger.error("Corpus ingestion failed", exc_info=exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to ingest corpus: {str(exc)}",
+        ) from exc
+

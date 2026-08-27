@@ -10,7 +10,7 @@ import {
   ParsedFile,
 } from '../types';
 import { SPECIALIZATIONS, SPANISH_GREETINGS, EXAMPLE_PROMPTS } from '../constants';
-import { exportConversationToMarkdown, downloadFile } from '../utils';
+import { exportConversationToMarkdown, downloadFile, generateUUID } from '../utils';
 import { buildContextBlock } from '../context';
 import { Message } from './Message';
 import { SpecializationMenu } from './SpecializationMenu';
@@ -225,7 +225,7 @@ export function Chat({
     }
 
     const userMessage: MessageType = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       role: 'user',
       content: displayContent,
       timestamp: Date.now(),
@@ -282,7 +282,7 @@ export function Chat({
       }
 
       const assistantMessage: MessageType = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: 'assistant',
         content: response.choices[0].message.content,
         timestamp: Date.now(),
@@ -304,7 +304,7 @@ export function Chat({
       });
     } catch (err: any) {
       const errorMessage: MessageType = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: 'assistant',
         content: `No se pudo procesar la consulta: ${err?.message || 'error de conexión con el motor legal'}`,
         timestamp: Date.now(),

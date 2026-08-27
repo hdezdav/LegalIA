@@ -1,0 +1,110 @@
+# LibreChat Configuration for LegalIA
+# https://docs.librechat.ai/install/configuration/custom_config.html
+
+version: 1.2.5
+
+cache: true
+
+# Registration and social logins
+registration:
+  socialLogins: []
+
+# Custom endpoints
+endpoints:
+  custom:
+    # LegalIA custom endpoint
+    - name: "LegalIA"
+      apiKey: "${LEGALIA_SERVICE_TOKEN}"
+      baseURL: "http://legalia-api:8000/api/v1"
+      models:
+        default: ["legalia"]
+        fetch: true
+      titleConvo: true
+      titleModel: "legalia"
+      summarize: false
+      summaryModel: "legalia"
+      forcePrompt: false
+      modelDisplayLabel: "LegalIA (IA Jurídica Colombia)"
+      iconURL: "/images/legalia-icon.svg"
+      description: "Asistente jurídico especializado en el ordenamiento colombiano con RAG híbrido, vigencia normativa y citas verificables."
+      headers:
+        X-LegalIA-User: "${USER_ID}"
+      addParams:
+        max_tokens: 4000
+      dropParams:
+        - "stop"
+        - "frequency_penalty"
+        - "presence_penalty"
+        - "temperature"
+        - "top_p"
+
+# Model specs / Specialized legal presets
+modelSpecs:
+  enforce: false
+  prioritize: true
+  list:
+    - name: "legalia-general"
+      label: "LegalIA - Asistente General"
+      description: "Consultas normativas generales, leyes, decretos y jurisprudencia colombiana."
+      iconURL: "/images/legalia-icon.svg"
+      preset:
+        endpoint: "LegalIA"
+        model: "legalia"
+        greeting: "Bienvenido a LegalIA. Soy tu asistente jurídico especializado en el ordenamiento legal colombiano. Formula tu consulta y la responderé con base exclusiva en fuentes y normas vigentes verificadas."
+
+    - name: "legalia-constitucional"
+      label: "LegalIA - Constitucional & Tutelas"
+      description: "Especializado en derechos fundamentales, acciones de tutela y Constitución de 1991."
+      iconURL: "/images/legalia-icon.svg"
+      preset:
+        endpoint: "LegalIA"
+        model: "legalia"
+        greeting: "Especialidad en Derecho Constitucional Colombiano. ¿Qué derecho fundamental, mecanismo de protección o norma constitucional deseas analizar?"
+
+    - name: "legalia-laboral"
+      label: "LegalIA - Laboral & Seguridad Social"
+      description: "Código Sustantivo del Trabajo, fueros laborales, liquidaciones y pensiones."
+      iconURL: "/images/legalia-icon.svg"
+      preset:
+        endpoint: "LegalIA"
+        model: "legalia"
+        greeting: "Especialidad en Derecho Laboral y de la Seguridad Social colombiano. ¿En qué tema contractual, prestacional o normativo requieres asistencia?"
+
+# Minimalist interface customization
+interface:
+  endpointsMenu: false
+  modelSelect: true
+  parameters: false
+  sidePanel: false
+  presets: false
+  prompts: false
+  bookmarks: false
+  multiConvo: false
+  agents: false
+  temporaryChat: false
+  runCode: false
+
+# File handling (for document upload in future phases)
+fileConfig:
+  endpoints:
+    assistants:
+      fileLimit: 5
+      fileSizeLimit: 10  # MB
+      totalSizeLimit: 50  # MB
+      supportedMimeTypes:
+        - "application/pdf"
+        - "text/plain"
+        - "text/html"
+
+# Rate limiting
+rateLimits:
+  fileUploads:
+    ipMax: 100
+    ipWindowInMinutes: 60
+    userMax: 50
+    userWindowInMinutes: 60
+  conversationsImport:
+    ipMax: 100
+    ipWindowInMinutes: 60
+    userMax: 50
+    userWindowInMinutes: 60

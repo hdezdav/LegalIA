@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /$
+Allow: /assets/
+Allow: /logos/
+
+# The app itself is behind auth and holds user conversations. Nothing under
+# these paths is useful in an index, and some of it is private.
+Disallow: /api/
+Disallow: /chat
+Disallow: /c/
+Disallow: /login
+Disallow: /register
+Disallow: /settings
+
+Sitemap: https://legalia.co/sitemap.xml

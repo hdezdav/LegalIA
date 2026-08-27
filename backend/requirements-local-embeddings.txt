@@ -1,0 +1,17 @@
+# =============================================================================
+# LegalIA - optional extra: local embedding models (BGE-M3)
+# =============================================================================
+# NOT installed in the API image. torch adds ~2.5 GB, and the 8 GB MVP VPS is not
+# expected to serve BGE-M3 for live queries (see docs/RAG.md).
+#
+# Install only where a local embed pass actually runs:
+#     pip install -r backend/requirements-local-embeddings.txt
+#
+# CPU wheels are pinned explicitly: the default torch wheel pulls CUDA
+# dependencies that are dead weight on a GPU-less box.
+
+-r requirements.txt
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1
+sentence-transformers==3.2.1

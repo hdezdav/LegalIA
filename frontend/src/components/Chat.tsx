@@ -1,0 +1,610 @@
+import { useState, useRef, useEffect, FormEvent, useMemo, ChangeEvent } from 'react';
+import { api } from '../api';
+import {
+  Agent,
+  Conversation,
+  LegalSpecializationId,
+  Memory,
+  Message as MessageType,
+  User,
+  ParsedFile,
+} from '../types';
+import { SPECIALIZATIONS, SPANISH_GREETINGS, EXAMPLE_PROMPTS } from '../constants';
+import { exportConversationToMarkdown, downloadFile } from '../utils';
+import { buildContextBlock } from '../context';
+import { Message } from './Message';
+import { SpecializationMenu } from './SpecializationMenu';
+import { ModelSelector } from './ModelSelector';
+import { UsageBar } from './UsageBar';
+import { FileRow } from './Chat/Files/FileRow';
+import { AttachFileMenu } from './Chat/Files/AttachFileMenu';
+import {
+  MenuIcon,
+  ArrowUpIcon,
+  DownloadIcon,
+  LogoIcon,
+  SlidersIcon,
+  MicIcon,
+  FileTextIcon,
+  BotIcon,
+  PaperclipIcon,
+} from './Icons';
+import './Chat.css';
+
+interface ChatProps {
+  conversation: Conversation;
+  currentUser?: User | null;
+  activeAgent?: Agent | null;
+  memories?: Memory[];
+  memoriesEnabled?: boolean;
+  injectedText?: string | null;
+  sidebarCollapsed: boolean;
+  selectedModelId?: string;
+  sessionPromptTokens?: number;
+  sessionCompletionTokens?: number;
+  lastLatencyMs?: number;
+  onSelectModel?: (modelId: string) => void;
+  onRecordUsage?: (promptTokens: number, completionTokens: number, latencyMs: number) => void;
+  onUpdateConversation: (conversation: Conversation) => void;
+  onOpenSidebar: () => void;
+  onOpenPrompts?: () => void;
+  onOpenAgents?: () => void;
+  onInjectedTextConsumed?: () => void;
+  onNewChat?: () => void;
+}
+
+export function Chat({
+  conversation,
+  currentUser,
+  activeAgent = null,
+  memories = [],
+  memoriesEnabled = false,
+  injectedText = null,
+  sidebarCollapsed,
+  selectedModelId = 'claude-sonnet-4.6',
+  sessionPromptTokens = 0,
+  sessionCompletionTokens = 0,
+  lastLatencyMs = 0,
+  onSelectModel,
+  onRecordUsage,
+  onUpdateConversation,
+  onOpenSidebar,
+  onOpenPrompts,
+  onOpenAgents,
+  onInjectedTextConsumed,
+}: ChatProps) {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<ParsedFile[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const firstName = useMemo(() => {
+    if (!currentUser?.full_name) return 'Doctor(a)';
+    return currentUser.full_name.trim().split(' ')[0];
+  }, [currentUser]);
+
+  const greetingText = useMemo(() => {
+    const template = SPANISH_GREETINGS[0] || '¿En qué vamos a profundizar hoy, {name}?';
+    return template.replace('{name}', firstName);
+  }, [firstName]);
+
+  useEffect(() => {
+    if (injectedText) {
+      setInput(injectedText);
+      onInjectedTextConsumed?.();
+      textareaRef.current?.focus();
+    }
+  }, [injectedText, onInjectedTextConsumed]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation.messages, loading]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
+
+  const specialization = SPECIALIZATIONS.find((s) => s.id === conversation.specialization);
+
+  const handleSpecializationChange = (id: LegalSpecializationId) => {
+    onUpdateConversation({ ...conversation, specialization: id });
+  };
+
+  const handleExport = () => {
+    const markdown = exportConversationToMarkdown(conversation);
+    downloadFile(`${conversation.title.replace(/\s+/g, '_')}.md`, markdown);
+  };
+
+  // Document Upload & MarkItDown Parsing Handler
+  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const parsed: ParsedFile = await api.uploadAndParseFile(file);
+        setAttachedFiles((prev) => [...prev, parsed]);
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'Error al procesar el archivo con MarkItDown');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Drag and Drop over Chat Area
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const parsed: ParsedFile = await api.uploadAndParseFile(file);
+        setAttachedFiles((prev) => [...prev, parsed]);
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'Error al procesar el archivo con MarkItDown');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveAttachedFile = (id: string) => {
+    setAttachedFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  // Quick Action Prompts for Lawyers
+  const handleQuickAction = (type: 'clauses' | 'summary' | 'verify', file: ParsedFile) => {
+    if (type === 'clauses') {
+      setInput(
+        `Analiza este documento (${file.filename}) e identifica cláusulas de riesgo, penalidades, prórrogas automáticas, ambigüedades y recomendaciones de blindaje jurídico según la ley colombiana:`
+      );
+    } else if (type === 'summary') {
+      setInput(
+        `Elabora un resumen procesal ejecutivo estructurado de este documento (${file.filename}) destacando: Partes procesales, Hechos jurídicos relevantes, Pretensiones, Términos y Cuantía estimada:`
+      );
+    } else if (type === 'verify') {
+      setInput(
+        `Coteja las normas, artículos y jurisprudencia citada en este documento (${file.filename}). Verifica si las normas están vigentes en Colombia y si existen sentencias de unificación o precedentes contrarios:`
+      );
+    }
+    textareaRef.current?.focus();
+  };
+
+  const handleSubmit = async (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = input.trim();
+    if ((!trimmed && attachedFiles.length === 0) || loading || isUploading) return;
+
+    let displayContent = trimmed;
+    let payloadContent = trimmed;
+
+    // If documents are attached, format with MarkItDown optimized block
+    if (attachedFiles.length > 0) {
+      const docBlocks = attachedFiles.map(
+        (f) =>
+          `[DOCUMENTO ADJUNTO - CONVERTIDO VÍA MARKITDOWN]\nNombre: ${f.filename}\nTipo: ${f.analysis.doc_type}\nJurisdicción: ${f.analysis.jurisdiction}\n\n${f.markdown}\n---`
+      ).join('\n\n');
+
+      payloadContent = `${docBlocks}\n\nConsulta del litigante: ${trimmed || 'Por favor analiza este documento adjunto.'}`;
+      if (!displayContent) {
+        displayContent = `Analizar documento adjunto (${attachedFiles.map((f) => f.filename).join(', ')})`;
+      }
+    }
+
+    const userMessage: MessageType = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: displayContent,
+      timestamp: Date.now(),
+      attachedFiles: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
+    };
+
+    setAttachedFiles([]);
+
+    const isFirstMessage = conversation.messages.length === 0;
+    const updated: Conversation = {
+      ...conversation,
+      title: isFirstMessage ? displayContent.slice(0, 42) + (displayContent.length > 42 ? '...' : '') : conversation.title,
+      messages: [...conversation.messages, userMessage],
+      updated_at: Date.now(),
+    };
+    onUpdateConversation(updated);
+    setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    setLoading(true);
+    try {
+      // Build context from active agent instructions and active memories
+      const contextBlock = buildContextBlock({
+        agent: activeAgent,
+        memories,
+        memoriesEnabled,
+        specialization: conversation.specialization,
+      });
+
+      const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = updated.messages.map((m, idx) => {
+        if (idx === updated.messages.length - 1) {
+          let fullContent = payloadContent;
+          if (contextBlock) {
+            fullContent = `${contextBlock}\n\n${fullContent}`;
+          }
+          return { role: m.role, content: fullContent };
+        }
+        return { role: m.role, content: m.content };
+      });
+
+      const response = await api.sendMessage({
+        model: selectedModelId,
+        messages: apiMessages,
+      });
+
+      // Record token telemetry
+      if (response.usage && onRecordUsage) {
+        onRecordUsage(
+          response.usage.prompt_tokens || 0,
+          response.usage.completion_tokens || 0,
+          response.legalia.latency_ms || 0
+        );
+      }
+
+      const assistantMessage: MessageType = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: response.choices[0].message.content,
+        timestamp: Date.now(),
+        metadata: {
+          refused_for_lack_of_evidence: response.legalia.refused_for_lack_of_evidence,
+          verification_status: response.legalia.verification_status,
+          retrieval_candidate_count: response.legalia.retrieval_candidate_count,
+          context_chunk_count: response.legalia.context_chunk_count,
+          top_evidence_score: response.legalia.top_evidence_score,
+          reranked: response.legalia.reranked,
+          latency_ms: response.legalia.latency_ms,
+        },
+      };
+
+      onUpdateConversation({
+        ...updated,
+        messages: [...updated.messages, assistantMessage],
+        updated_at: Date.now(),
+      });
+    } catch (err: any) {
+      const errorMessage: MessageType = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `No se pudo procesar la consulta: ${err?.message || 'error de conexión con el motor legal'}`,
+        timestamp: Date.now(),
+      };
+      onUpdateConversation({
+        ...updated,
+        messages: [...updated.messages, errorMessage],
+        updated_at: Date.now(),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const isEmpty = conversation.messages.length === 0;
+
+  return (
+    <div
+      className="chat-main"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        multiple
+        accept=".pdf,.docx,.doc,.txt,.md,.rtf,.xlsx"
+        style={{ display: 'none' }}
+      />
+
+      {/* Drag & Drop Overlay */}
+      {isDraggingOver && (
+        <div className="chat-drag-overlay">
+          <div className="drag-overlay-icon">
+            <PaperclipIcon size={24} />
+          </div>
+          <div className="drag-overlay-title">Suelta tus documentos jurídicos aquí</div>
+          <div className="drag-overlay-subtitle">Conversión automática con MarkItDown (-75% tokens)</div>
+        </div>
+      )}
+
+      {/* Top Bar with ModelSelector & Specialization */}
+      <header className="chat-topbar">
+        <div className="topbar-left">
+          {sidebarCollapsed && (
+            <button className="topbar-icon-btn" onClick={onOpenSidebar} title="Expandir panel lateral">
+              <MenuIcon size={18} />
+            </button>
+          )}
+
+          {/* Model Selector (Claude / GPT / Gemini) */}
+          {onSelectModel && (
+            <ModelSelector
+              selectedModelId={selectedModelId}
+              onSelectModel={onSelectModel}
+            />
+          )}
+
+          <SpecializationMenu
+            value={conversation.specialization}
+            onChange={handleSpecializationChange}
+          />
+
+          {activeAgent && onOpenAgents && (
+            <button className="topbar-chip-btn" onClick={onOpenAgents} title="Agente activo">
+              <BotIcon size={14} />
+              <span>{activeAgent.name}</span>
+            </button>
+          )}
+        </div>
+        <div className="topbar-right">
+          {onOpenPrompts && (
+            <button className="topbar-icon-btn" onClick={onOpenPrompts} title="Biblioteca de prompts">
+              <FileTextIcon size={16} />
+            </button>
+          )}
+          {!isEmpty && (
+            <button className="topbar-icon-btn" onClick={handleExport} title="Exportar conversación">
+              <DownloadIcon size={16} />
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main View Area */}
+      <div className={`chat-scroll ${isEmpty ? 'chat-scroll-empty' : ''}`}>
+        {isEmpty ? (
+          <div className="empty-hero-container">
+            <div className="empty-greeting-row">
+              <div className="empty-logo-circle">
+                <LogoIcon size={24} />
+              </div>
+              <h1 className="empty-greeting-title">{greetingText}</h1>
+            </div>
+
+            {/* Centered Composer Capsule */}
+            <div className="centered-composer-wrapper">
+              <form onSubmit={handleSubmit} className="composer-capsule">
+                {/* Attached File Chips (LibreChat Style) */}
+                <FileRow
+                  files={attachedFiles}
+                  onRemove={handleRemoveAttachedFile}
+                  onQuickAction={handleQuickAction}
+                />
+
+                {/* Upload Status / Error */}
+                {isUploading && (
+                  <div className="uploading-banner">
+                    <span className="mini-spinner" />
+                    <span>Procesando con MarkItDown y optimizando tokens...</span>
+                  </div>
+                )}
+                {uploadError && (
+                  <div className="upload-error-banner">{uploadError}</div>
+                )}
+
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Mensaje o consulta a Legalia (${specialization?.name || 'General'})...`}
+                  rows={1}
+                  disabled={loading || isUploading}
+                  className="capsule-textarea"
+                />
+
+                <div className="capsule-bottom-bar">
+                  <div className="capsule-left-actions">
+                    <AttachFileMenu
+                      onSelectUpload={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    />
+                    {onOpenPrompts && (
+                      <button type="button" className="capsule-icon-btn" onClick={onOpenPrompts} title="Plantillas de prompts">
+                        <FileTextIcon size={17} />
+                      </button>
+                    )}
+                    <button type="button" className="capsule-icon-btn" title="Ajustes de búsqueda RAG">
+                      <SlidersIcon size={17} />
+                    </button>
+                  </div>
+
+                  <div className="capsule-right-actions">
+                    <button type="button" className="capsule-icon-btn" title="Dictado por voz">
+                      <MicIcon size={17} />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={(!input.trim() && attachedFiles.length === 0) || loading || isUploading}
+                      className="capsule-send-btn"
+                      title="Enviar mensaje"
+                    >
+                      <ArrowUpIcon size={17} />
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Subtle Prompt Suggestions Grid */}
+            <div className="welcome-prompt-grid">
+              {EXAMPLE_PROMPTS.slice(0, 2).map((prompt: string) => (
+                <button
+                  key={prompt}
+                  className="welcome-prompt-pill"
+                  onClick={() => setInput(prompt)}
+                >
+                  <span>{prompt}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="message-list">
+            {conversation.messages.map((message) => (
+              <div key={message.id}>
+                {message.attachedFiles && message.attachedFiles.length > 0 && (
+                  <div className="message-attached-file-badge">
+                    <FileTextIcon size={14} />
+                    <span>{message.attachedFiles[0].filename}</span>
+                    <span className="badge-tag">
+                      MarkItDown (-{message.attachedFiles[0].stats.token_reduction_pct}% tokens)
+                    </span>
+                  </div>
+                )}
+                <Message message={message} />
+              </div>
+            ))}
+
+            {loading && (
+              <div className="msg-row msg-row-assistant">
+                <div className="msg-avatar msg-avatar-assistant">
+                  <LogoIcon size={15} />
+                </div>
+                <div className="msg-body">
+                  <div className="msg-name">Legalia ({selectedModelId})</div>
+                  <div className="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Sticky Bottom Composer for active conversations */}
+      {!isEmpty && (
+        <div className="chat-input-area">
+          {/* Real-time Token Usage & Latency Bar */}
+          <UsageBar
+            totalPromptTokens={sessionPromptTokens}
+            totalCompletionTokens={sessionCompletionTokens}
+            lastLatencyMs={lastLatencyMs}
+            activeModelId={selectedModelId}
+          />
+
+          <form onSubmit={handleSubmit} className="input-shell-capsule">
+            {/* Attached File Chips (LibreChat Style) */}
+            <FileRow
+              files={attachedFiles}
+              onRemove={handleRemoveAttachedFile}
+              onQuickAction={handleQuickAction}
+            />
+
+            {isUploading && (
+              <div className="uploading-banner">
+                <span className="mini-spinner" />
+                <span>Procesando documento con MarkItDown...</span>
+              </div>
+            )}
+
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe tu consulta o pide un análisis del documento..."
+              rows={1}
+              disabled={loading || isUploading}
+              className="input-textarea"
+            />
+            <div className="shell-bottom-bar">
+              <div className="shell-left-actions">
+                <AttachFileMenu
+                  onSelectUpload={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                />
+                {onOpenPrompts && (
+                  <button type="button" className="capsule-icon-btn" onClick={onOpenPrompts} title="Plantillas de prompts">
+                    <FileTextIcon size={16} />
+                  </button>
+                )}
+                <button type="button" className="capsule-icon-btn" title="Ajustes de búsqueda RAG">
+                  <SlidersIcon size={16} />
+                </button>
+              </div>
+              <div className="shell-right-actions">
+                <button
+                  type="submit"
+                  disabled={(!input.trim() && attachedFiles.length === 0) || loading || isUploading}
+                  className="capsule-send-btn"
+                  title="Enviar"
+                >
+                  <ArrowUpIcon size={16} />
+                </button>
+              </div>
+            </div>
+          </form>
+          <div className="input-disclaimer">
+            Legalia v0.1 · Principio: <strong>NO EVIDENCE → NO ANSWER</strong> · Telemetría en tiempo real.
+          </div>
+        </div>
+      )}
+
+      {/* Subtle Footer for Empty State */}
+      {isEmpty && (
+        <footer className="empty-bottom-footer">
+          <span>Legalia v0.1 · IA jurídica con Claude Sonnet</span>
+          <span>•</span>
+          <a href="#" onClick={(e) => e.preventDefault()}>Política de privacidad</a>
+          <span>•</span>
+          <a href="#" onClick={(e) => e.preventDefault()}>Términos de servicio</a>
+        </footer>
+      )}
+    </div>
+  );
+}

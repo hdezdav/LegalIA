@@ -1,0 +1,43 @@
+.git
+.gitignore
+.github
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data that must never enter the image
+corpus/
+data/
+backups/
+models/
+evaluation/results/
+logs/
+*.log
+
+# Frontend / infra state
+librechat/data/
+infrastructure/postgres/data/
+caddy_data/
+caddy_config/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Docs are not needed at runtime
+docs/

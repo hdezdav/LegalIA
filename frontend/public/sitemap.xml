@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Single-page landing, so there is exactly one indexable URL. Section
+       anchors (#precios, #faq, ...) are deliberately not listed: crawlers treat
+       a fragment as the same URL, so listing them adds nothing. The app routes
+       are excluded in robots.txt because they are behind auth. Add real entries
+       here when the blog or per-specialty pages ship. -->
+  <url>
+    <loc>https://legalia.co/</loc>
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

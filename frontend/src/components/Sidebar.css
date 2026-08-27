@@ -1,0 +1,174 @@
+.sidebar-rail {
+  width: 52px;
+  height: 100vh;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  flex-shrink: 0;
+  z-index: 40;
+  user-select: none;
+}
+
+.rail-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.rail-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.rail-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.rail-btn.active {
+  background-color: var(--bg-surface-active);
+  color: var(--text-primary);
+}
+
+.rail-divider {
+  width: 24px;
+  height: 1px;
+  background-color: var(--border-medium);
+  margin: 0.25rem 0;
+}
+
+.rail-bottom {
+  padding-bottom: 0.25rem;
+  position: relative;
+}
+
+.rail-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #008080;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+}
+
+.rail-avatar-circle:hover {
+  transform: scale(1.06);
+  filter: brightness(1.1);
+}
+
+/* LibreChat-Style Profile Popover Menu */
+.profile-popover-menu {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 10px);
+  width: 260px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  animation: profileFadeIn 0.15s ease-out;
+}
+
+@keyframes profileFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.profile-user-card {
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.profile-card-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.profile-card-email {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-card-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 0.2rem 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: transparent;
+  transition: background-color var(--transition-fast);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.profile-menu-item:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.profile-logout-item {
+  color: var(--ruby-500);
+}
+
+.profile-logout-item:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}

@@ -1,0 +1,201 @@
+.msg-row {
+  display: flex;
+  gap: calc(var(--spacing-unit) * 4);
+  padding: calc(var(--spacing-unit) * 5) calc(var(--spacing-unit) * 6);
+  max-width: 100%;
+}
+
+.msg-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-avatar-user {
+  background: rgb(var(--surface-tertiary));
+  color: rgb(var(--text-secondary));
+}
+
+.msg-avatar-assistant {
+  background: var(--anthropic-brand);
+  color: rgb(13, 13, 13);
+}
+
+.msg-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.msg-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-secondary));
+  margin-bottom: calc(var(--spacing-unit) * 1.5);
+}
+
+.msg-content {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgb(var(--text-primary));
+}
+
+.msg-plain {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg-content p {
+  margin: 0 0 calc(var(--spacing-unit) * 3) 0;
+}
+
+.msg-content p:last-child {
+  margin-bottom: 0;
+}
+
+.msg-content ul,
+.msg-content ol {
+  margin: 0 0 calc(var(--spacing-unit) * 3) 0;
+  padding-left: calc(var(--spacing-unit) * 6);
+}
+
+.msg-content li {
+  margin: calc(var(--spacing-unit) * 1) 0;
+}
+
+.msg-content strong {
+  font-weight: 600;
+  color: rgb(var(--text-primary));
+}
+
+.msg-content a {
+  text-decoration: underline;
+}
+
+.msg-content code {
+  padding: 2px 5px;
+  background: rgb(var(--surface-tertiary));
+  border-radius: 4px;
+  font-size: 0.875em;
+  color: rgb(var(--text-secondary));
+}
+
+.msg-content pre {
+  margin: calc(var(--spacing-unit) * 3) 0;
+  padding: calc(var(--spacing-unit) * 4);
+  background: rgb(var(--surface-primary));
+  border: 1px solid rgb(var(--border-light));
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.msg-content pre code {
+  padding: 0;
+  background: none;
+  color: rgb(var(--text-secondary));
+}
+
+.msg-content blockquote {
+  margin: calc(var(--spacing-unit) * 3) 0;
+  padding-left: calc(var(--spacing-unit) * 4);
+  border-left: 2px solid rgb(var(--border-medium));
+  color: rgb(var(--text-secondary));
+}
+
+.msg-content table {
+  width: 100%;
+  margin: calc(var(--spacing-unit) * 3) 0;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.msg-content th,
+.msg-content td {
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+  border: 1px solid rgb(var(--border-light));
+  text-align: left;
+}
+
+.msg-content th {
+  background: rgb(var(--surface-secondary));
+  font-weight: 600;
+}
+
+.msg-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing-unit) * 2);
+  margin-top: calc(var(--spacing-unit) * 3);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 1.5);
+  padding: 3px calc(var(--spacing-unit) * 2.5);
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.badge-ok {
+  background: rgba(52, 211, 153, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.badge-warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-neutral {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.badge-muted {
+  background: rgb(var(--surface-tertiary));
+  color: rgb(var(--text-tertiary));
+}
+
+.msg-actions {
+  display: flex;
+  gap: calc(var(--spacing-unit) * 1);
+  margin-top: calc(var(--spacing-unit) * 3);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.msg-row-assistant:hover .msg-actions {
+  opacity: 1;
+}
+
+.msg-action-btn {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 1.5);
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);
+  border-radius: var(--radius-sm);
+  color: rgb(var(--text-tertiary));
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.msg-action-btn:hover {
+  background: rgb(var(--surface-hover));
+  color: rgb(var(--text-secondary));
+}
+
+@media (max-width: 768px) {
+  .msg-row {
+    padding: calc(var(--spacing-unit) * 4) calc(var(--spacing-unit) * 3);
+  }
+}

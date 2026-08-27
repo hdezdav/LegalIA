@@ -1,0 +1,125 @@
+.agents-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-card {
+  background: rgb(var(--surface-primary-alt));
+  border: 1px solid rgb(var(--border-light));
+  border-radius: var(--radius-lg);
+  padding: calc(var(--spacing-unit) * 4);
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.agent-card:hover {
+  background: rgb(var(--surface-secondary));
+  border-color: rgb(var(--border-medium));
+}
+
+.agent-card-none {
+  border: 2px dashed rgb(var(--border-medium));
+}
+
+.agent-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+.agent-card-icon-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 2.5);
+  flex: 1;
+  cursor: pointer;
+}
+
+.agent-card-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.agent-card-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: rgb(var(--text-primary));
+}
+
+.agent-card-check {
+  color: rgb(var(--accent-primary));
+  flex-shrink: 0;
+}
+
+.agent-card-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 1);
+}
+
+.agent-card-desc {
+  font-size: 13px;
+  color: rgb(var(--text-secondary));
+  line-height: 1.5;
+  margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+.agent-card-preview {
+  font-size: 13px;
+  color: rgb(var(--text-tertiary));
+  line-height: 1.5;
+  margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.agent-card-meta {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 2);
+}
+
+.agent-spec {
+  padding: 3px calc(var(--spacing-unit) * 2.5);
+  background: rgb(var(--surface-tertiary));
+  color: rgb(var(--text-secondary));
+  font-size: 11.5px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}
+
+.form-input-icon {
+  width: 80px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.form-select {
+  width: 100%;
+  padding: calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3);
+  background: rgb(var(--surface-primary-alt));
+  border: 1px solid rgb(var(--border-medium));
+  border-radius: var(--radius-md);
+  color: rgb(var(--text-primary));
+  font-size: 14px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: rgb(var(--accent-primary));
+  background: rgb(var(--surface-primary));
+}
+
+@media (max-width: 640px) {
+  .agent-card-icon-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--spacing-unit) * 2);
+  }
+}

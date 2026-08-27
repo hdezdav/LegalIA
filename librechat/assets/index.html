@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="description" content="LegalIA - Sistema de Inteligencia Artificial y Verificación Jurídica Especializada en Colombia" />
+    <title>LegalIA - IA Jurídica Especializada en Colombia</title>
+    <link rel="shortcut icon" href="/images/legalia-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/images/legalia-icon.svg" />
+    <link rel="apple-touch-icon" href="/images/legalia-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #FFFFFF;
+      }
+      /* Minimalist polish & white-label overrides */
+      #loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #FFFFFF;
+      }
+      /* Ensure logo size and presentation on login screen is crisp */
+      img[src*="logo.svg"], svg.logo {
+        max-height: 52px;
+        width: auto;
+      }
+    </style>
+    <script>
+      // Default to light theme for a clean, professional legal aesthetic
+      if (!localStorage.getItem('color-theme')) {
+        localStorage.setItem('color-theme', 'light');
+      }
+      const theme = localStorage.getItem('color-theme') || 'light';
+      document.documentElement.classList.add(theme);
+    </script>
+    <script type="module" crossorigin src="/assets/markdown_highlight.YFvJ8PVJ.js"></script>
+    <script type="module" crossorigin src="/assets/markdown_large.CP3PaaA1.js"></script>
+    <script type="module" crossorigin src="/assets/vendor.B9rn5wnC.js"></script>
+    <script type="module" crossorigin src="/assets/locales.kTdk4dCj.js"></script>
+    <script type="module" crossorigin src="/assets/radix-ui.CYWSAE4O.js"></script>
+    <script type="module" crossorigin src="/assets/tanstack-vendor.B7DpA5Br.js"></script>
+    <script type="module" crossorigin src="/assets/framer-motion.DgLOuODd.js"></script>
+    <script type="module" crossorigin src="/assets/headlessui.BoMd6unl.js"></script>
+    <script type="module" crossorigin src="/assets/index.Biu9471v.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/markdown_large.CihyawKy.css">
+    <link rel="stylesheet" crossorigin href="/assets/index.KbLdmGvn.css">
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
+    <script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="loading-container"></div>
+    </div>
+  </body>
+</html>

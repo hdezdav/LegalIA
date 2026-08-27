@@ -1,0 +1,70 @@
+# =============================================================================
+# LegalIA - Caddy reverse proxy
+# =============================================================================
+# Single public entrypoint. Two upstreams:
+#
+#   /api/*  -> legalia-api:8000      (legal logic, RAG, citations, verification)
+#   /*      -> legalia-frontend:80   (React SPA served by nginx)
+#
+# With DOMAIN=localhost Caddy serves a local TLS cert. With a real domain it
+# provisions and renews a Let's Encrypt certificate automatically, which is the
+# only HTTPS mechanism this MVP relies on.
+# =============================================================================
+
+{
+	# Set ACME_EMAIL in .env for expiry notices on a real domain.
+	email {$ACME_EMAIL:admin@localhost}
+
+	# Caddy's own admin API stays off the network.
+	admin off
+
+	# Development: allow HTTP on localhost without HTTPS redirect
+	auto_https off
+}
+
+http://{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# --- Security headers (relaxed for development) ---------------------------
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Caddy advertises itself by default; no reason to hand that out.
+		-Server
+	}
+
+	# --- API endpoints --------------------------------------------------------
+	handle /api/* {
+		reverse_proxy legalia-api:8000 {
+			# Streaming: never buffer SSE responses.
+			flush_interval -1
+
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# --- Frontend SPA (Vite Dev Server with Live Reload) ---------------------
+	handle {
+		reverse_proxy legalia-frontend:5173 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# --- Request limits -------------------------------------------------------
+	# Guards the API against oversized request bodies. Document ingestion does
+	# NOT pass through here (it runs inside the container), so this can stay
+	# small.
+	request_body {
+		max_size 10MB
+	}
+
+	log {
+		output stdout
+		format json
+		# Request URIs can carry legal questions. Keep them out of proxy logs.
+		level WARN
+	}
+}

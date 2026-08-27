@@ -1,0 +1,17 @@
+# =============================================================================
+# LegalIA API - development and test dependencies
+# =============================================================================
+# Installed into the API image too: the documented workflow runs the suite with
+# `docker compose exec legalia-api pytest`, so the container needs them.
+
+-r requirements.txt
+
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+
+# TestClient dependency, used to exercise routes without a live server.
+# httpx itself is already a runtime dependency.
+asgi-lifespan==2.1.0
+
+ruff==0.7.2

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Social share card, 1200x630. Rasterized to og-image.png; the PNG is what
+       og:image points at, because several crawlers do not render SVG. -->
+  <defs>
+    <linearGradient id="pillar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d1d1f" />
+      <stop offset="100%" stop-color="#3a3a3c" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#ffffff" />
+  <rect x="0" y="0" width="1200" height="6" fill="#06c" />
+
+  <!-- Mark: scales, scaled up from legalia-icon.svg -->
+  <g transform="translate(92, 168) scale(1.15)">
+    <path d="M 100 44 L 100 152" stroke="url(#pillar)" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M 76 152 L 124 152" stroke="url(#pillar)" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M 68 160 L 132 160" stroke="url(#gold)" stroke-width="3.5" stroke-linecap="round" />
+    <polygon points="100,34 107,44 100,54 93,44" fill="url(#gold)" />
+    <path d="M 54 68 Q 100 62 146 68" fill="none" stroke="url(#pillar)" stroke-width="4" stroke-linecap="round" />
+    <line x1="54" y1="68" x2="42" y2="102" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="54" y1="68" x2="66" y2="102" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" />
+    <path d="M 36 102 Q 54 116 72 102 Z" fill="url(#gold)" />
+    <line x1="146" y1="68" x2="134" y2="102" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="146" y1="68" x2="158" y2="102" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" />
+    <path d="M 128 102 Q 146 116 164 102 Z" fill="url(#gold)" />
+    <circle cx="54" cy="68" r="3.5" fill="#06c" />
+    <circle cx="146" cy="68" r="3.5" fill="#06c" />
+    <circle cx="100" cy="95" r="4" fill="#06c" />
+  </g>
+
+  <!-- Wordmark + message. Generic families only: the rasterizer has no webfonts. -->
+  <text x="420" y="243" font-family="Helvetica, Arial, sans-serif" font-size="76" font-weight="600" fill="#1d1d1f" letter-spacing="-1.5">Legalia</text>
+
+  <text x="420" y="326" font-family="Helvetica, Arial, sans-serif" font-size="41" font-weight="500" fill="#1d1d1f">Respuestas jurídicas</text>
+  <text x="420" y="378" font-family="Helvetica, Arial, sans-serif" font-size="41" font-weight="500" fill="#06c">en las que puedes confiar</text>
+
+  <text x="420" y="446" font-family="Helvetica, Arial, sans-serif" font-size="25" fill="#86868b">Derecho colombiano · Cada respuesta cita su fuente</text>
+
+  <line x1="420" y1="486" x2="1108" y2="486" stroke="#d2d2d7" stroke-width="1.5" />
+
+  <circle cx="430" cy="524" r="6" fill="#34c759" />
+  <text x="450" y="532" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#86868b">Corte Constitucional · Corte Suprema · Consejo de Estado · DIAN</text>
+</svg>

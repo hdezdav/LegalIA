@@ -67,7 +67,7 @@
       "eyes": {
         "left": { "width": 14, "height": 45, "x": 0, "y": -1, "angle": 0 },
         "right": { "width": 14, "height": 45, "x": 0, "y": -1, "angle": 0 },
-        "spacing": 13
+        "spacing": 28
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -77,7 +77,7 @@
       "eyes": {
         "left": { "width": 16, "height": 42, "x": 0, "y": -10, "angle": 6 },
         "right": { "width": 16, "height": 42, "x": 0, "y": -10, "angle": -6 },
-        "spacing": 14
+        "spacing": 32
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -87,7 +87,7 @@
       "eyes": {
         "left": { "width": 15, "height": 48, "x": -2, "y": 2, "angle": -8 },
         "right": { "width": 15, "height": 48, "x": 2, "y": 2, "angle": 8 },
-        "spacing": 15
+        "spacing": 26
       },
       "perspective": 1,
       "motion": { "eyes": "shake", "body": "slowDrift" }
@@ -97,7 +97,7 @@
       "eyes": {
         "left": { "width": 15, "height": 42, "x": 0, "y": 0, "angle": 2 },
         "right": { "width": 15, "height": 42, "x": 0, "y": 0, "angle": -2 },
-        "spacing": 13
+        "spacing": 30
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -107,7 +107,7 @@
       "eyes": {
         "left": { "width": 18, "height": 22, "x": 0, "y": 0, "angle": 12 },
         "right": { "width": 18, "height": 22, "x": 0, "y": 0, "angle": -12 },
-        "spacing": 14
+        "spacing": 35
       },
       "perspective": 1,
       "motion": { "eyes": "none", "body": "slowDrift" }
@@ -117,7 +117,7 @@
       "eyes": {
         "left": { "width": 20, "height": 6, "x": 0, "y": 4, "angle": 0 },
         "right": { "width": 20, "height": 6, "x": 0, "y": 4, "angle": 0 },
-        "spacing": 16
+        "spacing": 39
       },
       "perspective": 1,
       "motion": { "eyes": "none", "body": "slowDrift" }

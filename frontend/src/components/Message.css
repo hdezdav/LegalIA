@@ -46,15 +46,12 @@
 
 .msg-streaming-badge {
   font-size: 11px;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  padding: 1px 6px;
-  border-radius: 4px;
+  color: var(--text-dim);
   animation: pulseStreaming 1.5s infinite;
 }
 
 @keyframes pulseStreaming {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
 
@@ -167,7 +164,7 @@
 .streaming-cursor {
   display: inline-block;
   margin-left: 2px;
-  color: #38bdf8;
+  color: var(--text-dim);
   font-weight: 700;
   animation: cursorBlink 0.85s infinite;
 }

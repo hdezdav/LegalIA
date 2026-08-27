@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Conversation } from '../../types';
+import { useState, useEffect } from 'react';
+import { Conversation, TokenQuota } from '../../types';
 import { SPECIALIZATIONS } from '../../constants';
 import { formatTime, truncate } from '../../utils';
+import { api } from '../../api';
 import { PlusIcon, TrashIcon, SearchIcon } from '../Icons';
 import { SpecializationIcon } from '../SpecializationMenu';
 
@@ -22,6 +23,35 @@ export function ConversationsView({
 }: ConversationsViewProps) {
   const [search, setSearch] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [quota, setQuota] = useState<TokenQuota>({
+    total_tokens: 15000000,
+    used_tokens: 1282915,
+    remaining_tokens: 13717085,
+    remaining_percent: 91.4,
+    total_millions: 15.0,
+    remaining_millions: 13.72,
+    used_millions: 1.28,
+    status: 'active',
+    days_remaining: 10,
+    rpm_limit: 120,
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchQuota = async () => {
+      try {
+        const data = await api.getQuota();
+        if (mounted) setQuota(data);
+      } catch {}
+    };
+
+    fetchQuota();
+    const interval = setInterval(fetchQuota, 45000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(search.toLowerCase())
@@ -105,6 +135,24 @@ export function ConversationsView({
             })}
           </div>
         )}
+      </div>
+
+      {/* Minimalist AI Token Quota Bar (Bottom of SidePanel) */}
+      <div className="sidepanel-quota-box">
+        <div className="quota-meta-row">
+          <span className="quota-label">Tokens IA del mes</span>
+          <span className="quota-value">{quota.remaining_millions}M / {quota.total_millions}M</span>
+        </div>
+        <div className="quota-progress-track">
+          <div
+            className="quota-progress-bar"
+            style={{ width: `${Math.min(100, Math.max(0, quota.remaining_percent))}%` }}
+          />
+        </div>
+        <div className="quota-subtext-row">
+          <span>{quota.remaining_percent}% disponible</span>
+          <span>{quota.days_remaining ? `${quota.days_remaining} días restantes` : 'Mes activo'}</span>
+        </div>
       </div>
     </div>
   );

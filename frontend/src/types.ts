@@ -105,6 +105,19 @@ export interface ChatResponse {
   };
 }
 
+export interface TokenQuota {
+  total_tokens: number;
+  used_tokens: number;
+  remaining_tokens: number;
+  remaining_percent: number;
+  total_millions: number;
+  remaining_millions: number;
+  used_millions: number;
+  status: string;
+  days_remaining?: number;
+  rpm_limit?: number;
+}
+
 // --- Prompts ---
 
 export interface PromptTemplate {

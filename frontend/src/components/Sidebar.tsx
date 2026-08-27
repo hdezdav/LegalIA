@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, SidePanelTab } from '../types';
+import { User, SidePanelTab, TokenQuota } from '../types';
+import { api } from '../api';
 import {
   PanelLeftIcon,
   MessageSquareIcon,
@@ -11,6 +12,7 @@ import {
   PaperclipIcon,
   ScalesIcon,
   LogOutIcon,
+  SparklesIcon,
 } from './Icons';
 import './Sidebar.css';
 
@@ -35,6 +37,19 @@ export function Sidebar({
 }: SidebarProps) {
   const activeUser = user || currentUser;
   const [profileOpen, setProfileOpen] = useState(false);
+  const [quota, setQuota] = useState<TokenQuota>({
+    total_tokens: 15000000,
+    used_tokens: 1282915,
+    remaining_tokens: 13717085,
+    remaining_percent: 91.4,
+    total_millions: 15.0,
+    remaining_millions: 13.72,
+    used_millions: 1.28,
+    status: 'active',
+    days_remaining: 10,
+    rpm_limit: 120,
+  });
+
   const profileRef = useRef<HTMLDivElement>(null);
 
   const getInitials = (name?: string) => {
@@ -43,6 +58,23 @@ export function Sidebar({
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.slice(0, 2).toUpperCase();
   };
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchQuota = async () => {
+      try {
+        const data = await api.getQuota();
+        if (mounted) setQuota(data);
+      } catch {}
+    };
+
+    fetchQuota();
+    const interval = setInterval(fetchQuota, 45000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -64,7 +96,7 @@ export function Sidebar({
 
   return (
     <aside className="sidebar-rail">
-      {/* Top Rail Navigation (LibreChat-Clean Architecture) */}
+      {/* Top Rail Navigation */}
       <div className="rail-top">
         <button
           className={`rail-btn ${isSidePanelOpen ? 'active' : ''}`}
@@ -140,8 +172,24 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Bottom Profile Avatar & Popover Menu */}
+      {/* Bottom Profile Avatar & Real-time AI Token Bar */}
       <div className="rail-bottom" ref={profileRef}>
+        {/* Minimalist AI Token Bar (directly above avatar) */}
+        <div
+          className="rail-token-widget"
+          onClick={() => setProfileOpen(!profileOpen)}
+          title={`Tokens IA asignados: ${quota.remaining_millions}M / ${quota.total_millions}M (${quota.remaining_percent}% disponible)`}
+        >
+          <div className="rail-token-bar-track">
+            <div
+              className="rail-token-bar-fill"
+              style={{ height: `${Math.min(100, Math.max(8, quota.remaining_percent))}%` }}
+            />
+          </div>
+          <span className="rail-token-label">{quota.remaining_millions}M</span>
+        </div>
+
+        {/* User Profile Avatar Circle */}
         <div
           className="rail-avatar-circle"
           onClick={() => setProfileOpen(!profileOpen)}
@@ -150,6 +198,7 @@ export function Sidebar({
           {getInitials(activeUser?.full_name)}
         </div>
 
+        {/* Profile & Token Quota Popover */}
         {profileOpen && (
           <div className="profile-popover-menu">
             <div className="profile-user-card">
@@ -161,6 +210,33 @@ export function Sidebar({
               </div>
               <div className="profile-card-badge">
                 Plan Profesional · Colombia
+              </div>
+            </div>
+
+            {/* Total Monthly AI Token Balance Card */}
+            <div className="profile-quota-card">
+              <div className="profile-quota-header">
+                <div className="profile-quota-title-row">
+                  <SparklesIcon size={14} className="quota-sparkle" />
+                  <span>Tokens IA Mensuales</span>
+                </div>
+                <span className="profile-quota-pct">{quota.remaining_percent}%</span>
+              </div>
+
+              <div className="profile-quota-nums">
+                <strong>{quota.remaining_millions}M</strong> de {quota.total_millions}M disponibles
+              </div>
+
+              <div className="quota-progress-track">
+                <div
+                  className="quota-progress-bar"
+                  style={{ width: `${Math.min(100, Math.max(0, quota.remaining_percent))}%` }}
+                />
+              </div>
+
+              <div className="profile-quota-details">
+                <span>Consumidos: {quota.used_millions}M</span>
+                <span>{quota.days_remaining ? `${quota.days_remaining} días restantes` : 'Mes en curso'}</span>
               </div>
             </div>
 

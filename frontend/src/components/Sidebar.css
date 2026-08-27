@@ -51,8 +51,55 @@
 }
 
 .rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 0.25rem;
   position: relative;
+  width: 100%;
+}
+
+/* Minimalist Vertical AI Token Meter (Directly Above Avatar) */
+.rail-token-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+
+.rail-token-widget:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.rail-token-bar-track {
+  width: 5px;
+  height: 22px;
+  background-color: var(--bg-surface-active);
+  border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.rail-token-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  border-radius: 99px;
+  transition: height 0.4s ease;
+}
+
+.rail-token-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .rail-avatar-circle {
@@ -81,7 +128,7 @@
   position: absolute;
   bottom: 0;
   left: calc(100% + 10px);
-  width: 260px;
+  width: 270px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
@@ -106,7 +153,7 @@
 }
 
 .profile-user-card {
-  padding: 0.5rem 0.65rem;
+  padding: 0.5rem 0.65rem 0.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -136,6 +183,79 @@
   border-radius: 4px;
   align-self: flex-start;
   margin-top: 0.2rem;
+}
+
+/* Quota Card in Profile Popover */
+.profile-quota-card {
+  background-color: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.65rem;
+  margin: 0.25rem 0.25rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.profile-quota-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-quota-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.quota-sparkle {
+  color: #10b981;
+}
+
+.profile-quota-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.profile-quota-nums {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.profile-quota-nums strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.quota-progress-track {
+  width: 100%;
+  height: 5px;
+  background-color: var(--bg-surface-active);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.quota-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.profile-quota-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--text-muted);
 }
 
 .profile-menu-divider {

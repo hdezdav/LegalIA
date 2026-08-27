@@ -36,10 +36,20 @@ from app.schemas.chat import (
     ModelList,
 )
 from app.services.chat_service import ChatService
+from app.services.nodule_service import get_nodule_quota
 from app.services.retrieval_service import RetrievalService
 
 router = APIRouter(tags=["chat"])
 logger = get_logger(__name__)
+
+
+@router.get(
+    "/usage/quota",
+    summary="Get live Nodule AI token quota and balance",
+)
+async def get_token_quota():
+    return await get_nodule_quota()
+
 
 #: The model name clients select. Deliberately opaque: which Claude model, which
 #: embedding provider and which reranker are LegalIA's decisions, not the

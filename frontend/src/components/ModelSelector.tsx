@@ -194,9 +194,32 @@ const DEFAULT_MODELS: ScrapedModelOption[] = [
   },
 ];
 
-function mapRawModelToOption(raw: { id: string; owned_by?: string }): ScrapedModelOption {
+function mapRawModelToOption(raw: {
+  id: string;
+  name?: string;
+  provider?: string;
+  context_limit?: number;
+  context_limit_label?: string;
+  description?: string;
+  badge?: string | null;
+  owned_by?: string;
+  created?: number;
+}): ScrapedModelOption {
   const id = raw.id;
-  const owned = raw.owned_by || '';
+  const owned = (raw.owned_by || '').toLowerCase();
+
+  // If backend provided enriched fields from Nodule
+  if (raw.name && raw.provider && raw.description && raw.context_limit_label) {
+    return {
+      id: raw.id,
+      name: raw.name,
+      provider: (raw.provider as any) || 'Legalia',
+      description: raw.description,
+      contextLimit: raw.context_limit_label,
+      badge: raw.badge || undefined,
+      owned_by: raw.owned_by,
+    };
+  }
 
   if (id === 'legalia') {
     return {
@@ -205,6 +228,7 @@ function mapRawModelToOption(raw: { id: string; owned_by?: string }): ScrapedMod
       provider: 'Legalia',
       description: 'Enrutador jurídico automático con verificación RAG estricta',
       contextLimit: '200k tokens',
+      badge: 'RAG Verificado',
     };
   }
 

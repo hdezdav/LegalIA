@@ -1,0 +1,43 @@
+name: Deploy to Production VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS (166.1.88.122)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 166.1.88.122
+          username: root
+          password: ${{ secrets.VPS_PASSWORD || 'W5y6dV3XJ9cl];' }}
+          script: |
+            set -e
+            echo "🚀 Actualizando LegalIA en el VPS..."
+            cd /opt/legalia
+
+            # Sync or pull latest changes
+            if [ -d ".git" ]; then
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            # Rebuild and restart services
+            docker compose -f docker-compose.prod.yml build legalia-frontend legalia-api
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Healthcheck
+            sleep 5
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            curl -f http://localhost:80/health || exit 1
+            echo "✅ Despliegue completado con éxito."

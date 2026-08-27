@@ -148,7 +148,17 @@ export const api = {
     return response.json();
   },
 
-  async getModels(): Promise<Array<{ id: string; owned_by?: string }>> {
+  async getModels(): Promise<Array<{
+    id: string;
+    name?: string;
+    provider?: string;
+    context_limit?: number;
+    context_limit_label?: string;
+    description?: string;
+    badge?: string | null;
+    owned_by?: string;
+    created?: number;
+  }>> {
     const response = await fetch(`${API_BASE}/models`);
     if (!response.ok) {
       return [];

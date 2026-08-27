@@ -27,6 +27,13 @@ logger = get_logger(__name__)
 
 def build_llm_provider(config: Settings) -> LLMProvider:
     """Construct the answer-generating provider."""
+    if config.LLM_PROVIDER == "mock":
+        logger.warning(
+            "using the mock LLM provider. Answers are quoted directly from "
+            "retrieved context and are not model-generated"
+        )
+        return MockLLMProvider()
+
     # 1. Check OpenAI-compatible provider / Nodule
     llm_key = ""
     if config.LLM_API_KEY:
@@ -45,24 +52,25 @@ def build_llm_provider(config: Settings) -> LLMProvider:
         )
 
     # 2. Check native Anthropic provider
-    if config.ANTHROPIC_API_KEY:
-        api_key = config.ANTHROPIC_API_KEY.get_secret_value().strip()
-        if api_key:
-            from app.providers.llm.anthropic import AnthropicProvider
+    if config.LLM_PROVIDER == "anthropic" or (config.LLM_PROVIDER != "mock" and config.ANTHROPIC_API_KEY):
+        if config.ANTHROPIC_API_KEY:
+            api_key = config.ANTHROPIC_API_KEY.get_secret_value().strip()
+            if api_key:
+                from app.providers.llm.anthropic import AnthropicProvider
 
-            return AnthropicProvider(
-                api_key=api_key,
-                model=config.ANTHROPIC_MODEL,
-                max_tokens=config.ANTHROPIC_MAX_TOKENS,
-                temperature=config.ANTHROPIC_TEMPERATURE,
-                timeout=config.ANTHROPIC_TIMEOUT_SECONDS,
-                max_retries=config.ANTHROPIC_MAX_RETRIES,
-            )
+                return AnthropicProvider(
+                    api_key=api_key,
+                    model=config.ANTHROPIC_MODEL,
+                    max_tokens=config.ANTHROPIC_MAX_TOKENS,
+                    temperature=config.ANTHROPIC_TEMPERATURE,
+                    timeout=config.ANTHROPIC_TIMEOUT_SECONDS,
+                    max_retries=config.ANTHROPIC_MAX_RETRIES,
+                )
 
     if config.is_production:
         raise LLMError(
             "LLM_API_KEY or ANTHROPIC_API_KEY is required to generate answers. "
-            "Set it, or run with ENVIRONMENT=development to use the mock."
+            "Set it, or set LLM_PROVIDER=mock or ENVIRONMENT=development to use the mock."
         )
 
     logger.warning(
@@ -74,6 +82,9 @@ def build_llm_provider(config: Settings) -> LLMProvider:
 
 def build_verifier_provider(config: Settings) -> LLMProvider:
     """Construct the provider used by LLM-backed verification."""
+    if config.LLM_PROVIDER == "mock":
+        return MockLLMProvider(model="mock/verifier")
+
     llm_key = ""
     if config.LLM_API_KEY:
         llm_key = config.LLM_API_KEY.get_secret_value().strip()
@@ -90,19 +101,20 @@ def build_verifier_provider(config: Settings) -> LLMProvider:
             timeout=config.ANTHROPIC_TIMEOUT_SECONDS,
         )
 
-    if config.ANTHROPIC_API_KEY:
-        api_key = config.ANTHROPIC_API_KEY.get_secret_value().strip()
-        if api_key:
-            from app.providers.llm.anthropic import AnthropicProvider
+    if config.LLM_PROVIDER == "anthropic" or (config.LLM_PROVIDER != "mock" and config.ANTHROPIC_API_KEY):
+        if config.ANTHROPIC_API_KEY:
+            api_key = config.ANTHROPIC_API_KEY.get_secret_value().strip()
+            if api_key:
+                from app.providers.llm.anthropic import AnthropicProvider
 
-            return AnthropicProvider(
-                api_key=api_key,
-                model=config.VERIFIER_MODEL,
-                max_tokens=1024,
-                temperature=0.0,
-                timeout=config.ANTHROPIC_TIMEOUT_SECONDS,
-                max_retries=config.ANTHROPIC_MAX_RETRIES,
-            )
+                return AnthropicProvider(
+                    api_key=api_key,
+                    model=config.VERIFIER_MODEL,
+                    max_tokens=1024,
+                    temperature=0.0,
+                    timeout=config.ANTHROPIC_TIMEOUT_SECONDS,
+                    max_retries=config.ANTHROPIC_MAX_RETRIES,
+                )
 
     if config.is_production:
         raise LLMError("LLM API key is required for LLM verification")

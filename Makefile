@@ -23,6 +23,10 @@ help:
 	@echo "  make lint           Run linters"
 	@echo "  make format         Format code"
 	@echo ""
+	@echo "Deployment:"
+	@echo "  make deploy         Deploy changes directly to remote VPS"
+	@echo "  make watch-deploy   Watch local changes and auto-deploy to VPS"
+	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean          Clean temporary files"
 	@echo "  make shell          Open API shell"
@@ -85,3 +89,9 @@ shell:
 
 health:
 	@curl -s http://localhost:8000/api/v1/health | jq .
+
+deploy:
+	@./scripts/deploy_remote.sh
+
+watch-deploy:
+	@./scripts/watch_and_deploy.sh

@@ -19,6 +19,7 @@ import './Sidebar.css';
 interface SidebarProps {
   user?: User | null;
   currentUser?: User | null;
+  quota?: TokenQuota | null;
   activeTab: SidePanelTab | null;
   isSidePanelOpen: boolean;
   onTabClick: (tab: SidePanelTab) => void;
@@ -29,6 +30,7 @@ interface SidebarProps {
 export function Sidebar({
   user,
   currentUser,
+  quota: propQuota,
   activeTab,
   isSidePanelOpen,
   onTabClick,
@@ -37,7 +39,7 @@ export function Sidebar({
 }: SidebarProps) {
   const activeUser = user || currentUser;
   const [profileOpen, setProfileOpen] = useState(false);
-  const [quota, setQuota] = useState<TokenQuota>({
+  const [localQuota, setLocalQuota] = useState<TokenQuota>({
     total_tokens: 15000000,
     used_tokens: 1282915,
     remaining_tokens: 13717085,
@@ -50,6 +52,7 @@ export function Sidebar({
     rpm_limit: 120,
   });
 
+  const quota = propQuota || localQuota;
   const profileRef = useRef<HTMLDivElement>(null);
 
   const getInitials = (name?: string) => {
@@ -60,21 +63,22 @@ export function Sidebar({
   };
 
   useEffect(() => {
+    if (propQuota) return;
     let mounted = true;
     const fetchQuota = async () => {
       try {
         const data = await api.getQuota();
-        if (mounted) setQuota(data);
+        if (mounted) setLocalQuota(data);
       } catch {}
     };
 
     fetchQuota();
-    const interval = setInterval(fetchQuota, 45000);
+    const interval = setInterval(fetchQuota, 8000);
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [propQuota]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

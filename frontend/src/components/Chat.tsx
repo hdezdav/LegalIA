@@ -48,6 +48,7 @@ interface ChatProps {
   onOpenAgents?: () => void;
   onInjectedTextConsumed?: () => void;
   onNewChat?: () => void;
+  onMessageComplete?: () => void;
 }
 
 export function Chat({
@@ -66,6 +67,7 @@ export function Chat({
   onOpenAgents,
   onInjectedTextConsumed,
   onNewChat,
+  onMessageComplete,
 }: ChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -323,6 +325,7 @@ export function Chat({
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
+      onMessageComplete?.();
     }
   };
 
@@ -408,6 +411,7 @@ export function Chat({
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
+      onMessageComplete?.();
     }
   };
 

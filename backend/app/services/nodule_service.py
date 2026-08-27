@@ -11,7 +11,7 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-_CACHE_TTL_SECONDS = 20
+_CACHE_TTL_SECONDS = 1
 _CACHED_METRICS: dict[str, tuple[float, dict[str, Any]]] = {}
 
 

@@ -6,6 +6,7 @@ import {
   Memory,
   MemoriesConfig,
   ParsedFile,
+  TokenQuota,
 } from '../../types';
 import { ConversationsView } from './ConversationsView';
 import { AgentsView } from './AgentsView';
@@ -19,6 +20,7 @@ interface SidePanelProps {
   activeTab: SidePanelTab | null;
   isOpen: boolean;
   onClose?: () => void;
+  quota?: TokenQuota | null;
   // Conversations
   conversations: Conversation[];
   activeConversationId: string | null;
@@ -52,6 +54,7 @@ interface SidePanelProps {
 export function SidePanel({
   activeTab,
   isOpen,
+  quota,
   conversations,
   activeConversationId,
   onSelectConversation,
@@ -87,6 +90,7 @@ export function SidePanel({
           <ConversationsView
             conversations={conversations}
             activeConversationId={activeConversationId}
+            quota={quota}
             onSelect={onSelectConversation}
             onDelete={onDeleteConversation}
             onNewChat={onNewConversation}

@@ -9,6 +9,7 @@ import {
   Agent,
   SidePanelTab,
   ParsedFile,
+  TokenQuota,
 } from './types';
 import { createConversation, loadConversations, saveConversations } from './storage';
 import {
@@ -85,6 +86,27 @@ export function App() {
 
   // Injected text from Prompts/Files into Chat
   const [injectedText, setInjectedText] = useState<string | null>(null);
+
+  // Real-time Token Quota State (synced across sidebar, panel, and completions)
+  const [quota, setQuota] = useState<TokenQuota | null>(null);
+
+  const refreshQuota = useCallback(async () => {
+    try {
+      const data = await api.getQuota();
+      setQuota(data);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    refreshQuota();
+    const interval = setInterval(refreshQuota, 8000);
+    const handleFocus = () => refreshQuota();
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshQuota]);
 
   const [theme] = useState<'light' | 'dark'>(() => {
     const stored = localStorage.getItem(THEME_KEY);
@@ -345,6 +367,7 @@ export function App() {
       {/* 1. Left Rail (52px wide) */}
       <Sidebar
         currentUser={currentUser}
+        quota={quota}
         activeTab={activeTab}
         isSidePanelOpen={sidePanelOpen}
         onTabClick={handleTabClick}
@@ -357,6 +380,7 @@ export function App() {
         activeTab={activeTab}
         isOpen={sidePanelOpen}
         onClose={() => setSidePanelOpen(false)}
+        quota={quota}
         conversations={conversations}
         activeConversationId={activeConversationId}
         onSelectConversation={handleSelectConversation}
@@ -409,6 +433,7 @@ export function App() {
           }}
           onInjectedTextConsumed={() => setInjectedText(null)}
           onNewChat={handleNewConversation}
+          onMessageComplete={refreshQuota}
         />
       )}
     </div>

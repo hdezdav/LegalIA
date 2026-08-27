@@ -65,9 +65,9 @@
     "neutral": {
       "head": { "x": -2, "y": 4, "z": 6 },
       "eyes": {
-        "left": { "width": 16, "height": 44, "x": -21, "y": 0, "angle": 4 },
-        "right": { "width": 16, "height": 44, "x": 21, "y": 0, "angle": -4 },
-        "spacing": 42
+        "left": { "width": 15, "height": 44, "x": -17, "y": 0, "angle": 3 },
+        "right": { "width": 15, "height": 44, "x": 17, "y": 0, "angle": -3 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -75,9 +75,9 @@
     "thinking": {
       "head": { "x": 8, "y": -14, "z": -10 },
       "eyes": {
-        "left": { "width": 16, "height": 38, "x": -18, "y": -8, "angle": 10 },
-        "right": { "width": 16, "height": 38, "x": 24, "y": -8, "angle": -6 },
-        "spacing": 42
+        "left": { "width": 15, "height": 38, "x": -14, "y": -8, "angle": 8 },
+        "right": { "width": 15, "height": 38, "x": 20, "y": -8, "angle": -5 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -85,9 +85,9 @@
     "searching": {
       "head": { "x": -12, "y": 10, "z": -12 },
       "eyes": {
-        "left": { "width": 17, "height": 46, "x": -23, "y": 2, "angle": -8 },
-        "right": { "width": 17, "height": 46, "x": 19, "y": 2, "angle": 8 },
-        "spacing": 42
+        "left": { "width": 16, "height": 46, "x": -19, "y": 2, "angle": -7 },
+        "right": { "width": 16, "height": 46, "x": 15, "y": 2, "angle": 7 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "shake", "body": "slowDrift" }
@@ -95,9 +95,9 @@
     "answering": {
       "head": { "x": 0, "y": 6, "z": 2 },
       "eyes": {
-        "left": { "width": 17, "height": 46, "x": -21, "y": 0, "angle": 2 },
-        "right": { "width": 17, "height": 46, "x": 21, "y": 0, "angle": -2 },
-        "spacing": 42
+        "left": { "width": 16, "height": 46, "x": -17, "y": 0, "angle": 2 },
+        "right": { "width": 16, "height": 46, "x": 17, "y": 0, "angle": -2 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -105,9 +105,9 @@
     "answering-nod": {
       "head": { "x": 4, "y": -2, "z": -4 },
       "eyes": {
-        "left": { "width": 16, "height": 44, "x": -21, "y": -2, "angle": 4 },
-        "right": { "width": 16, "height": 44, "x": 21, "y": -2, "angle": -4 },
-        "spacing": 42
+        "left": { "width": 15, "height": 44, "x": -17, "y": -2, "angle": 3 },
+        "right": { "width": 15, "height": 44, "x": 17, "y": -2, "angle": -3 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "microSaccades", "body": "slowDrift" }
@@ -115,9 +115,9 @@
     "happy": {
       "head": { "x": 4, "y": 2, "z": 8 },
       "eyes": {
-        "left": { "width": 18, "height": 26, "x": -20, "y": -2, "angle": 14 },
-        "right": { "width": 18, "height": 26, "x": 20, "y": -2, "angle": -14 },
-        "spacing": 40
+        "left": { "width": 17, "height": 26, "x": -16, "y": -2, "angle": 12 },
+        "right": { "width": 17, "height": 26, "x": 16, "y": -2, "angle": -12 },
+        "spacing": 32
       },
       "perspective": 1,
       "motion": { "eyes": "none", "body": "slowDrift" }
@@ -125,9 +125,9 @@
     "sleeping": {
       "head": { "x": -16, "y": 12, "z": 10 },
       "eyes": {
-        "left": { "width": 22, "height": 6, "x": -21, "y": 6, "angle": 0 },
-        "right": { "width": 22, "height": 6, "x": 21, "y": 6, "angle": 0 },
-        "spacing": 42
+        "left": { "width": 20, "height": 6, "x": -17, "y": 6, "angle": 0 },
+        "right": { "width": 20, "height": 6, "x": 17, "y": 6, "angle": 0 },
+        "spacing": 34
       },
       "perspective": 1,
       "motion": { "eyes": "none", "body": "slowDrift" }

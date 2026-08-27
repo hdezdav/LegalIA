@@ -9,6 +9,7 @@ import { SpecializationIcon } from '../SpecializationMenu';
 interface ConversationsViewProps {
   conversations: Conversation[];
   activeConversationId: string | null;
+  quota?: TokenQuota | null;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onNewChat: () => void;
@@ -17,13 +18,14 @@ interface ConversationsViewProps {
 export function ConversationsView({
   conversations,
   activeConversationId,
+  quota: propQuota,
   onSelect,
   onDelete,
   onNewChat,
 }: ConversationsViewProps) {
   const [search, setSearch] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [quota, setQuota] = useState<TokenQuota>({
+  const [localQuota, setLocalQuota] = useState<TokenQuota>({
     total_tokens: 15000000,
     used_tokens: 1282915,
     remaining_tokens: 13717085,
@@ -36,22 +38,25 @@ export function ConversationsView({
     rpm_limit: 120,
   });
 
+  const quota = propQuota || localQuota;
+
   useEffect(() => {
+    if (propQuota) return;
     let mounted = true;
     const fetchQuota = async () => {
       try {
         const data = await api.getQuota();
-        if (mounted) setQuota(data);
+        if (mounted) setLocalQuota(data);
       } catch {}
     };
 
     fetchQuota();
-    const interval = setInterval(fetchQuota, 45000);
+    const interval = setInterval(fetchQuota, 8000);
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [propQuota]);
 
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(search.toLowerCase())

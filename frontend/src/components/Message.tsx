@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '../types';
 import { copyToClipboard } from '../utils';
 import { getTranslations } from '../i18n';
-import { UserIcon, CopyIcon, CheckIcon, RefreshIcon } from './Icons';
+import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
 import './Message.css';
 
@@ -75,6 +75,7 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
   };
 
   const isUser = message.role === 'user';
+  const isThinking = !isUser && isStreaming && !message.content.trim();
 
   return (
     <div className={`msg-row ${isUser ? 'msg-row-user' : 'msg-row-assistant'}`}>
@@ -82,19 +83,32 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
         {isUser ? (
           <UserIcon size={15} />
         ) : (
-          <LegaliaBotAvatar size={28} state={isStreaming ? 'answering' : 'idle'} interactive={true} />
+          <LegaliaBotAvatar
+            size={28}
+            state={isStreaming ? (isThinking ? 'thinking' : 'answering') : 'idle'}
+            interactive={true}
+          />
         )}
       </div>
 
       <div className="msg-body">
         <div className="msg-header-row">
           <span className="msg-name">{isUser ? t.chat.you : t.chat.assistant}</span>
-          {isStreaming && <span className="msg-streaming-badge">Generando...</span>}
         </div>
 
         <div className="msg-content">
           {isUser ? (
             <div className="msg-plain">{message.content}</div>
+          ) : isThinking ? (
+            <div className="librechat-thinking-indicator">
+              <SparklesIcon size={14} className="thinking-spark-icon" />
+              <span className="thinking-text">Pensando...</span>
+              <span className="thinking-dots">
+                <span />
+                <span />
+                <span />
+              </span>
+            </div>
           ) : (
             <>
               <ReactMarkdown
@@ -105,7 +119,7 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
               >
                 {message.content}
               </ReactMarkdown>
-              {isStreaming && <span className="streaming-cursor">▊</span>}
+              {isStreaming && <span className="librechat-cursor" />}
             </>
           )}
         </div>

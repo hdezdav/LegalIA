@@ -22,7 +22,8 @@
 
 .msg-avatar-assistant {
   background: transparent;
-  border-radius: 50%;
+  border: none;
+  overflow: visible;
 }
 
 .msg-body {
@@ -39,26 +40,101 @@
 }
 
 .msg-name {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: rgb(var(--text-secondary));
+  color: var(--text-primary);
 }
 
-.msg-streaming-badge {
-  font-size: 11px;
-  color: var(--text-dim);
-  animation: pulseStreaming 1.5s infinite;
+/* LibreChat Minimalist Thinking Indicator */
+.librechat-thinking-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  user-select: none;
+  animation: thinkingShimmer 2.5s ease-in-out infinite;
 }
 
-@keyframes pulseStreaming {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+.thinking-spark-icon {
+  color: var(--text-muted);
+  animation: rotateSpark 3s linear infinite;
+}
+
+.thinking-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.thinking-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  animation: thinkingWave 1.4s infinite ease-in-out both;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes thinkingWave {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes thinkingShimmer {
+  0%, 100% {
+    border-color: var(--border-subtle);
+  }
+  50% {
+    border-color: var(--border-medium);
+  }
+}
+
+@keyframes rotateSpark {
+  0% { transform: rotate(0deg) scale(0.95); }
+  50% { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(0.95); }
+}
+
+/* LibreChat Neutral Blinking Cursor */
+.librechat-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  background-color: var(--text-primary);
+  margin-left: 3px;
+  vertical-align: -2px;
+  border-radius: 1px;
+  animation: blinkLibreCursor 0.8s infinite;
+}
+
+@keyframes blinkLibreCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .msg-content {
   font-size: 14.5px;
   line-height: 1.65;
-  color: rgb(var(--text-primary));
+  color: var(--text-primary);
 }
 
 .msg-plain {
@@ -86,7 +162,7 @@
 
 .msg-content strong {
   font-weight: 600;
-  color: rgb(var(--text-primary));
+  color: var(--text-primary);
 }
 
 .msg-content a {
@@ -95,10 +171,10 @@
 
 .inline-code {
   padding: 2px 5px;
-  background: rgb(var(--surface-tertiary));
+  background: var(--bg-surface-hover);
   border-radius: 4px;
   font-size: 0.875em;
-  color: rgb(var(--text-secondary));
+  color: var(--text-primary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
@@ -107,7 +183,7 @@
   margin: 1rem 0;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
   background-color: #0d0d0d;
 }
 
@@ -160,43 +236,23 @@
   padding: 0 !important;
 }
 
-/* Streaming blinking cursor */
-.streaming-cursor {
-  display: inline-block;
-  margin-left: 2px;
-  color: var(--text-dim);
-  font-weight: 700;
-  animation: cursorBlink 0.85s infinite;
-}
-
-@keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.msg-content blockquote {
-  margin: calc(var(--spacing-unit) * 3) 0;
-  padding-left: calc(var(--spacing-unit) * 4);
-  border-left: 2px solid rgb(var(--border-medium));
-  color: rgb(var(--text-secondary));
-}
-
+/* Markdown Tables */
 .msg-content table {
   width: 100%;
-  margin: calc(var(--spacing-unit) * 3) 0;
   border-collapse: collapse;
+  margin: 1rem 0;
   font-size: 13.5px;
 }
 
 .msg-content th,
 .msg-content td {
-  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
-  border: 1px solid rgb(var(--border-light));
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
   text-align: left;
 }
 
 .msg-content th {
-  background: rgb(var(--surface-secondary));
+  background-color: var(--bg-surface-hover);
   font-weight: 600;
 }
 
@@ -219,26 +275,26 @@
 }
 
 .badge-ok {
-  background: rgba(52, 211, 153, 0.12);
-  color: #6ee7b7;
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .badge-warn {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.10);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.20);
 }
 
 .badge-neutral {
-  background: rgba(96, 165, 250, 0.12);
-  color: #93c5fd;
-  border: 1px solid rgba(96, 165, 250, 0.25);
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-muted {
-  background: rgb(var(--surface-tertiary));
-  color: rgb(var(--text-tertiary));
+  background: var(--bg-surface);
+  color: var(--text-muted);
 }
 
 .msg-actions {
@@ -259,14 +315,14 @@
   gap: calc(var(--spacing-unit) * 1.5);
   padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);
   border-radius: var(--radius-sm);
-  color: rgb(var(--text-tertiary));
+  color: var(--text-muted);
   font-size: 12px;
   transition: all 0.15s ease;
 }
 
 .msg-action-btn:hover {
-  background: rgb(var(--surface-hover));
-  color: rgb(var(--text-secondary));
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
 }
 
 @media (max-width: 768px) {

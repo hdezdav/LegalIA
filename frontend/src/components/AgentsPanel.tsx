@@ -48,7 +48,7 @@ export function AgentsPanel({
     setEditing(agent);
     setFormName(agent.name);
     setFormDescription(agent.description);
-    setFormIcon(agent.icon);
+    setFormIcon(agent.icon || '⚖️');
     setFormInstructions(agent.instructions);
     setFormSpecialization(agent.specialization);
     setView('editor');

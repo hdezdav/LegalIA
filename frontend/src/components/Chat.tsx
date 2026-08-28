@@ -13,6 +13,7 @@ import { SPECIALIZATIONS, SPANISH_GREETINGS, EXAMPLE_PROMPTS } from '../constant
 import { exportConversationToMarkdown, downloadFile, generateUUID } from '../utils';
 import { buildContextBlock } from '../context';
 import { Message } from './Message';
+import { OptionItem, ParsedQuestionOptions } from './Chat/InteractiveOptionsCard';
 import { SpecializationMenu } from './SpecializationMenu';
 import { ModelSelector } from './ModelSelector';
 import { FileRow } from './Chat/Files/FileRow';
@@ -28,8 +29,11 @@ import {
   PaperclipIcon,
   SquareIcon,
   PlusIcon,
+  SparklesIcon,
 } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
+import { LaborCalculatorModal } from './Tools/LaborCalculatorModal';
+import { RagSettingsModal, RagSettingsConfig } from './Tools/RagSettingsModal';
 import './Chat.css';
 
 interface ChatProps {
@@ -39,6 +43,7 @@ interface ChatProps {
   memories?: Memory[];
   memoriesEnabled?: boolean;
   injectedText?: string | null;
+  injectedFile?: ParsedFile | null;
   sidebarCollapsed?: boolean;
   selectedModelId?: string;
   onSelectModel?: (modelId: string) => void;
@@ -47,6 +52,7 @@ interface ChatProps {
   onOpenPrompts?: () => void;
   onOpenAgents?: () => void;
   onInjectedTextConsumed?: () => void;
+  onInjectedFileConsumed?: () => void;
   onNewChat?: () => void;
   onMessageComplete?: () => void;
 }
@@ -58,6 +64,7 @@ export function Chat({
   memories = [],
   memoriesEnabled = false,
   injectedText = null,
+  injectedFile = null,
   sidebarCollapsed,
   selectedModelId = 'claude-sonnet-4.6',
   onSelectModel,
@@ -66,16 +73,82 @@ export function Chat({
   onOpenPrompts,
   onOpenAgents,
   onInjectedTextConsumed,
+  onInjectedFileConsumed,
   onNewChat,
   onMessageComplete,
 }: ChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<ParsedQuestionOptions | null>(null);
+  const [showAllOptions, setShowAllOptions] = useState(false);
+  const publishedOptionsRef = useRef(new Set<string>());
   const [attachedFiles, setAttachedFiles] = useState<ParsedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isLaborCalcOpen, setIsLaborCalcOpen] = useState(false);
+  const [isRagSettingsOpen, setIsRagSettingsOpen] = useState(false);
+  const [ragSettings, setRagSettings] = useState<RagSettingsConfig>({
+    topK: 5,
+    vigenciaOnly: true,
+    reranking: true,
+    searchMode: 'hibrido',
+  });
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
+  const toggleVoiceDictation = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        'El dictado por voz requiere Google Chrome, Microsoft Edge o Safari compatible con Web Speech API.'
+      );
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'es-CO';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript.trim()) {
+          setInput((prev) => (prev ? `${prev} ${transcript.trim()}` : transcript.trim()));
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsRecording(false);
+    }
+  };
+
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +171,23 @@ export function Chat({
       textareaRef.current?.focus();
     }
   }, [injectedText, onInjectedTextConsumed]);
+
+  useEffect(() => {
+    setPendingQuestion(null);
+    setShowAllOptions(false);
+    publishedOptionsRef.current.clear();
+  }, [conversation.id]);
+
+  useEffect(() => {
+    if (injectedFile) {
+      setAttachedFiles((prev) => {
+        if (prev.some((f) => f.id === injectedFile.id)) return prev;
+        return [...prev, injectedFile];
+      });
+      onInjectedFileConsumed?.();
+      textareaRef.current?.focus();
+    }
+  }, [injectedFile, onInjectedFileConsumed]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,6 +217,29 @@ export function Chat({
       abortControllerRef.current = null;
     }
     setLoading(false);
+  };
+
+  const handleOptionsReady = (messageId: string, question: ParsedQuestionOptions) => {
+    if (loading || !question.options.length) return;
+    const uniqueOptions = question.options.filter((option, index, all) => {
+      const key = `${option.title.trim()}\u0000${option.description?.trim() || ''}`;
+      return all.findIndex((candidate) => `${candidate.title.trim()}\u0000${candidate.description?.trim() || ''}` === key) === index;
+    });
+    if (!uniqueOptions.length) return;
+    const contentKey = uniqueOptions
+      .map((option) => `${option.title.trim()}\u0000${option.description?.trim() || ''}`)
+      .join('\u0001');
+    const publicationKey = `${messageId}\u0002${contentKey}`;
+    if (publishedOptionsRef.current.has(publicationKey)) return;
+    publishedOptionsRef.current.add(publicationKey);
+     setPendingQuestion({ title: question.title, options: uniqueOptions });
+  };
+
+  const handleSelectPendingOption = (option: OptionItem) => {
+    setPendingQuestion(null);
+    setShowAllOptions(false);
+    const fullText = option.description ? `${option.title}: ${option.description}` : option.title;
+    handleSendCustomMessage(fullText);
   };
 
   // Document Upload & MarkItDown Parsing Handler
@@ -212,6 +325,7 @@ export function Chat({
     if (e) e.preventDefault();
     const trimmed = input.trim();
     if ((!trimmed && attachedFiles.length === 0) || loading || isUploading) return;
+    setPendingQuestion(null);
 
     let displayContent = trimmed;
     let payloadContent = trimmed;
@@ -329,8 +443,115 @@ export function Chat({
     }
   };
 
+  const handleSendCustomMessage = (customText: string) => {
+    if (!customText || !customText.trim()) return;
+    setPendingQuestion(null);
+
+    // 1. Abort existing stream if any is active
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    const trimmedInput = customText.trim();
+    const userMessage: MessageType = {
+      id: generateUUID(),
+      role: 'user',
+      content: trimmedInput,
+      timestamp: Date.now(),
+    };
+
+    const isFirstMessage = conversation.messages.length === 0;
+    const derivedTitle = isFirstMessage
+      ? trimmedInput.slice(0, 42) + (trimmedInput.length > 42 ? '...' : '')
+      : conversation.title;
+
+    const assistantMsgId = generateUUID();
+    const assistantPlaceholder: MessageType = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+
+    let currentConversation: Conversation = {
+      ...conversation,
+      title: derivedTitle,
+      messages: [...conversation.messages, userMessage, assistantPlaceholder],
+      updated_at: Date.now(),
+    };
+    onUpdateConversation(currentConversation);
+
+    setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    setLoading(true);
+
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 60);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    let accumulatedText = '';
+
+    const contextBlock = buildContextBlock({
+      agent: activeAgent,
+      memories,
+      memoriesEnabled,
+      specialization: conversation.specialization,
+    });
+
+    const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+      ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
+      {
+        role: 'user',
+        content: contextBlock ? `${contextBlock}\n\n${trimmedInput}` : trimmedInput,
+      },
+    ];
+
+    api.streamMessage(
+      {
+        model: selectedModelId,
+        messages: apiMessages,
+      },
+      (token: string) => {
+        accumulatedText += token;
+        currentConversation = {
+          ...currentConversation,
+          messages: currentConversation.messages.map((m) =>
+            m.id === assistantMsgId ? { ...m, content: accumulatedText } : m
+          ),
+          updated_at: Date.now(),
+        };
+        onUpdateConversation(currentConversation);
+      },
+      controller.signal
+    ).catch((err: any) => {
+      if (err.name !== 'AbortError') {
+        const errorText = accumulatedText
+          ? `${accumulatedText}\n\n*[Respuesta interrumpida: ${err.message || 'error'}]*`
+          : `No se pudo procesar la consulta: ${err?.message || 'error'}`;
+        currentConversation = {
+          ...currentConversation,
+          messages: currentConversation.messages.map((m) =>
+            m.id === assistantMsgId ? { ...m, content: errorText } : m
+          ),
+          updated_at: Date.now(),
+        };
+        onUpdateConversation(currentConversation);
+      }
+    }).finally(() => {
+      setLoading(false);
+      abortControllerRef.current = null;
+      onMessageComplete?.();
+    });
+  };
+
   const handleRegenerate = async () => {
     if (loading || conversation.messages.length < 2) return;
+    setPendingQuestion(null);
     const lastUserIdx = [...conversation.messages].reverse().findIndex((m) => m.role === 'user');
     if (lastUserIdx === -1) return;
     const actualIdx = conversation.messages.length - 1 - lastUserIdx;
@@ -424,6 +645,39 @@ export function Chat({
 
   const isEmpty = conversation.messages.length === 0;
 
+  const renderQuestionRail = () => pendingQuestion && pendingQuestion.options.length > 0 && !loading ? (
+    <div
+      className="question-rail"
+      aria-live="polite"
+      aria-label={pendingQuestion.title || 'Selecciona una opción para continuar:'}
+    >
+      <span className="question-rail-label">
+        {pendingQuestion.title || 'Selecciona una opción para continuar:'}
+      </span>
+       <div className="question-rail-options">
+         {pendingQuestion.options.slice(0, showAllOptions ? undefined : 4).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className="question-rail-option"
+            onClick={() => handleSelectPendingOption(option)}
+          >
+            {option.description ? `${option.title}: ${option.description}` : option.title}
+          </button>
+         ))}
+         {pendingQuestion.options.length > 4 && !showAllOptions && (
+           <button
+             type="button"
+             className="question-rail-more"
+             onClick={() => setShowAllOptions(true)}
+           >
+             Ver más opciones
+           </button>
+         )}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div
       className="chat-main"
@@ -474,6 +728,16 @@ export function Chat({
             onChange={handleSpecializationChange}
           />
 
+          <button
+            type="button"
+            className="topbar-chip-btn"
+            onClick={() => setIsLaborCalcOpen(true)}
+            title="Calculadora de Liquidación Laboral (CST)"
+          >
+            <SparklesIcon size={13} />
+            <span>Calculadora CST</span>
+          </button>
+
           {activeAgent && onOpenAgents && (
             <button className="topbar-chip-btn" onClick={onOpenAgents} title="Agente activo">
               <BotIcon size={14} />
@@ -482,6 +746,14 @@ export function Chat({
           )}
         </div>
         <div className="topbar-right">
+          <button
+            type="button"
+            className="topbar-icon-btn"
+            onClick={() => setIsRagSettingsOpen(true)}
+            title="Ajustes de búsqueda RAG"
+          >
+            <SlidersIcon size={16} />
+          </button>
           {onNewChat && (
             <button className="topbar-icon-btn" onClick={onNewChat} title="Nueva conversación">
               <PlusIcon size={16} />
@@ -515,8 +787,23 @@ export function Chat({
             </div>
 
             {/* Centered Composer Capsule */}
-            <div className="centered-composer-wrapper">
-              <form onSubmit={handleSubmit} className="composer-capsule">
+             <div className="centered-composer-wrapper">
+               <div className="welcome-prompt-grid">
+                 {(activeAgent?.conversation_starters && activeAgent.conversation_starters.length > 0
+                   ? activeAgent.conversation_starters.slice(0, 3)
+                   : EXAMPLE_PROMPTS.slice(0, 3)
+                 ).map((prompt: string) => (
+                   <button
+                     key={prompt}
+                     type="button"
+                     className="welcome-prompt-pill"
+                     onClick={() => handleSendCustomMessage(prompt)}
+                   >
+                     <span>{prompt}</span>
+                   </button>
+                 ))}
+               </div>
+               <form onSubmit={handleSubmit} className="composer-capsule">
                 {/* Attached File Chips (LibreChat Style) */}
                 <FileRow
                   files={attachedFiles}
@@ -557,13 +844,23 @@ export function Chat({
                         <FileTextIcon size={17} />
                       </button>
                     )}
-                    <button type="button" className="capsule-icon-btn" title="Ajustes de búsqueda RAG">
+                    <button
+                      type="button"
+                      className="capsule-icon-btn"
+                      onClick={() => setIsRagSettingsOpen(true)}
+                      title="Ajustes de búsqueda RAG"
+                    >
                       <SlidersIcon size={17} />
                     </button>
                   </div>
 
                   <div className="capsule-right-actions">
-                    <button type="button" className="capsule-icon-btn" title="Dictado por voz">
+                    <button
+                      type="button"
+                      className={`capsule-icon-btn ${isRecording ? 'recording-pulse' : ''}`}
+                      onClick={toggleVoiceDictation}
+                      title={isRecording ? 'Detener dictado por voz' : 'Iniciar dictado por voz'}
+                    >
                       <MicIcon size={17} />
                     </button>
                     {loading ? (
@@ -590,18 +887,6 @@ export function Chat({
               </form>
             </div>
 
-            {/* Subtle Prompt Suggestions Grid */}
-            <div className="welcome-prompt-grid">
-              {EXAMPLE_PROMPTS.slice(0, 2).map((prompt: string) => (
-                <button
-                  key={prompt}
-                  className="welcome-prompt-pill"
-                  onClick={() => setInput(prompt)}
-                >
-                  <span>{prompt}</span>
-                </button>
-              ))}
-            </div>
           </div>
         ) : (
           <div className="message-list">
@@ -620,7 +905,9 @@ export function Chat({
                   message={message}
                   isStreaming={loading && idx === conversation.messages.length - 1 && message.role === 'assistant'}
                   onRegenerate={idx === conversation.messages.length - 1 && message.role === 'assistant' ? handleRegenerate : undefined}
-                />
+                   onSendMessage={handleSendCustomMessage}
+                    onOptionsReady={(question) => handleOptionsReady(message.id, question)}
+                 />
               </div>
             ))}
 
@@ -632,6 +919,7 @@ export function Chat({
       {/* Sticky Bottom Composer for active conversations */}
       {!isEmpty && (
         <div className="chat-input-area">
+          {renderQuestionRail()}
           <form onSubmit={handleSubmit} className="input-shell-capsule">
             {/* Attached File Chips (LibreChat Style) */}
             <FileRow
@@ -668,11 +956,24 @@ export function Chat({
                     <FileTextIcon size={16} />
                   </button>
                 )}
-                <button type="button" className="capsule-icon-btn" title="Ajustes de búsqueda RAG">
+                <button
+                  type="button"
+                  className="capsule-icon-btn"
+                  onClick={() => setIsRagSettingsOpen(true)}
+                  title="Ajustes de búsqueda RAG"
+                >
                   <SlidersIcon size={16} />
                 </button>
               </div>
               <div className="shell-right-actions">
+                <button
+                  type="button"
+                  className={`capsule-icon-btn ${isRecording ? 'recording-pulse' : ''}`}
+                  onClick={toggleVoiceDictation}
+                  title={isRecording ? 'Detener dictado por voz' : 'Iniciar dictado por voz'}
+                >
+                  <MicIcon size={16} />
+                </button>
                 {loading ? (
                   <button
                     type="button"
@@ -696,15 +997,29 @@ export function Chat({
             </div>
           </form>
           <div className="input-disclaimer">
-            Legalia v0.1 · Principio: <strong>NO EVIDENCE → NO ANSWER</strong> · Telemetría en tiempo real.
+            Legalia puede cometer errores. Verifica siempre la normativa y precedentes oficiales aplicables a tu caso.
           </div>
         </div>
       )}
 
+      {/* Modals */}
+      <LaborCalculatorModal
+        isOpen={isLaborCalcOpen}
+        onClose={() => setIsLaborCalcOpen(false)}
+        onInsertToChat={(txt) => handleSendCustomMessage(txt)}
+      />
+
+      <RagSettingsModal
+        isOpen={isRagSettingsOpen}
+        onClose={() => setIsRagSettingsOpen(false)}
+        settings={ragSettings}
+        onSaveSettings={setRagSettings}
+      />
+
       {/* Subtle Footer for Empty State */}
       {isEmpty && (
         <footer className="empty-bottom-footer">
-          <span>Legalia v0.1 · IA jurídica con Claude Sonnet</span>
+          <span>Legalia v0.1 · Asistente Jurídico Colombia con Claude Sonnet</span>
           <span>•</span>
           <a href="#" onClick={(e) => e.preventDefault()}>Política de privacidad</a>
           <span>•</span>

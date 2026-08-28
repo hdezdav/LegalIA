@@ -22,7 +22,7 @@ export function LandingNavbar({ onGoToApp, onLogin }: LandingNavbarProps) {
             <ScalesIcon size={18} />
           </div>
           <span className="brand-title">
-            Legal<span>IA</span>
+            Legalia
           </span>
           <span className="brand-colombia-tag">Colombia</span>
         </div>

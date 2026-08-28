@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '../types';
 import { copyToClipboard } from '../utils';
+import { exportToWord, exportToPdf } from '../utils/documentExport';
 import { getTranslations } from '../i18n';
-import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon } from './Icons';
+import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon, DownloadIcon, FileTextIcon } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
+import { LegalDocumentCard } from './Chat/LegalDocumentCard';
+import { ParsedQuestionOptions, parseOptionsMarkdown } from './Chat/InteractiveOptionsCard';
+import { InteractiveFormCard, parseFormMarkdown } from './Chat/InteractiveFormCard';
 import './Message.css';
 
 const t = getTranslations('es');
@@ -14,13 +18,27 @@ interface MessageProps {
   message: MessageType;
   isStreaming?: boolean;
   onRegenerate?: () => void;
+  onSendMessage?: (text: string) => void;
+  onOptionsReady?: (question: ParsedQuestionOptions) => void;
 }
 
-function CodeBlock({ inline, className, children, ...props }: any) {
+function CodeBlock({ inline, className, children, onSendMessage, onOptionsReady, messageId, isStreaming, ...props }: any) {
   const [copied, setCopied] = useState(false);
-  const match = /language-(\w+)/.exec(className || '');
-  const language = match ? match[1] : '';
+  const match = /language-([\w-]+)/.exec(className || '');
+  const language = match ? match[1].toLowerCase() : '';
   const codeContent = String(children).replace(/\n$/, '');
+  const isOptionsBlock = !inline && (
+    language.includes('interactive-options') ||
+    language.includes('options') ||
+    language.includes('opciones') ||
+    language.includes('preguntas')
+  );
+  const parsedOptions = isOptionsBlock ? parseOptionsMarkdown(codeContent) : null;
+
+  useEffect(() => {
+    if (!isOptionsBlock || isStreaming || !parsedOptions?.options.length) return;
+    onOptionsReady?.(parsedOptions);
+  }, [isOptionsBlock, isStreaming, messageId, codeContent, onOptionsReady]);
 
   if (inline || !match) {
     return (
@@ -28,6 +46,54 @@ function CodeBlock({ inline, className, children, ...props }: any) {
         {children}
       </code>
     );
+  }
+
+  // 1. Detect interactive options / choice chips
+  if (isOptionsBlock) {
+    // The completed message publishes options to Chat, where they sit above the composer.
+    return null;
+  }
+
+  // 2. Detect interactive intake forms
+  if (
+    language.includes('legal-form') ||
+    language.includes('form') ||
+    language.includes('formulario') ||
+    language.includes('intake')
+  ) {
+    const parsed = parseFormMarkdown(codeContent);
+    return (
+      <InteractiveFormCard
+        title={parsed.title}
+        description={parsed.description}
+        fields={parsed.fields}
+        onSubmitForm={(prompt) => onSendMessage?.(prompt)}
+      />
+    );
+  }
+
+  // 3. Detect legal document code blocks
+  const isLegalDoc =
+    language.includes('legal-document') ||
+    language.includes('document') ||
+    language.includes('minuta') ||
+    language.includes('contrato') ||
+    language.includes('tutela') ||
+    language.includes('demanda') ||
+    language.includes('peticion') ||
+    language === 'doc';
+
+  if (isLegalDoc) {
+    let title = 'Documento Jurídico';
+    const lines = codeContent.split('\n');
+    for (const line of lines) {
+      const clean = line.replace(/^[#\*\s\-]+|[#\*\s\-]+$/g, '').trim();
+      if (clean && clean.length > 5 && clean.length < 90) {
+        title = clean;
+        break;
+      }
+    }
+    return <LegalDocumentCard title={title} type={language} content={codeContent} />;
   }
 
   const handleCopyCode = async () => {
@@ -63,7 +129,7 @@ function CodeBlock({ inline, className, children, ...props }: any) {
   );
 }
 
-export function Message({ message, isStreaming = false, onRegenerate }: MessageProps) {
+export function Message({ message, isStreaming = false, onRegenerate, onSendMessage, onOptionsReady }: MessageProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -76,6 +142,40 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
 
   const isUser = message.role === 'user';
   const isThinking = !isUser && isStreaming && !message.content.trim();
+
+  // Detect if full assistant message is a drafted legal document
+  const isDraftedLegalDoc = useMemo(() => {
+    if (isUser || !message.content) return false;
+    const upper = message.content.toUpperCase();
+    const matchesKeyword =
+      upper.includes('CONTRATO DE') ||
+      upper.includes('DERECHO DE PETICIÓN') ||
+      upper.includes('DERECHO DE PETICION') ||
+      upper.includes('ACCIÓN DE TUTELA') ||
+      upper.includes('ACCION DE TUTELA') ||
+      upper.includes('SEÑOR JUEZ') ||
+      upper.includes('MINUTA') ||
+      upper.includes('PODER ESPECIAL') ||
+      upper.includes('MEMORIAL DE') ||
+      upper.includes('CLÁUSULA PRIMERA') ||
+      upper.includes('CLAUSULA PRIMERA');
+
+    const hasStructure = message.content.length > 250;
+    return matchesKeyword && hasStructure;
+  }, [isUser, message.content]);
+
+  // Extract a document title from message
+  const docTitle = useMemo(() => {
+    if (!isDraftedLegalDoc) return 'Documento Legal';
+    const lines = message.content.split('\n');
+    for (const l of lines) {
+      const clean = l.replace(/^[#\*\s\-]+|[#\*\s\-]+$/g, '').trim();
+      if (clean && clean.length > 6 && clean.length < 100) {
+        return clean;
+      }
+    }
+    return 'Documento Jurídico Legalia';
+  }, [isDraftedLegalDoc, message.content]);
 
   return (
     <div className={`msg-row ${isUser ? 'msg-row-user' : 'msg-row-assistant'}`}>
@@ -114,7 +214,15 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code: CodeBlock,
+                   code: (props) => (
+                     <CodeBlock
+                       {...props}
+                       onSendMessage={onSendMessage}
+                       onOptionsReady={onOptionsReady}
+                       messageId={message.id}
+                       isStreaming={isStreaming}
+                     />
+                   ),
                 }}
               >
                 {message.content}
@@ -152,6 +260,30 @@ export function Message({ message, isStreaming = false, onRegenerate }: MessageP
 
         {!isUser && !isStreaming && (
           <div className="msg-actions">
+            {isDraftedLegalDoc && (
+              <>
+                <button
+                  type="button"
+                  className="msg-action-btn msg-action-btn-primary"
+                  onClick={() => exportToWord(docTitle, message.content)}
+                  title="Descargar documento en Microsoft Word (.docx)"
+                >
+                  <DownloadIcon size={13} />
+                  <span>Descargar Word (.docx)</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="msg-action-btn"
+                  onClick={() => exportToPdf(docTitle, message.content)}
+                  title="Imprimir o guardar como PDF"
+                >
+                  <FileTextIcon size={13} />
+                  <span>PDF / Imprimir</span>
+                </button>
+              </>
+            )}
+
             <button className="msg-action-btn" onClick={handleCopy} title="Copiar mensaje">
               {copied ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
               <span>{copied ? t.chat.copied : t.chat.copy}</span>

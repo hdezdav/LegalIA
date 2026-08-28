@@ -20,7 +20,7 @@
   width: 100%;
   max-width: 980px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.25rem;
 }
 
 .landing-container.wide {
@@ -113,13 +113,13 @@
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .btn-nav-login {
   font-size: 0.75rem;
   font-weight: 400;
-  color: #06c;
+  color: #52637a;
   background: transparent;
   padding: 0;
   transition: opacity 0.2s ease;
@@ -133,22 +133,22 @@
   font-size: 0.75rem;
   font-weight: 400;
   color: #ffffff;
-  background: #06c;
-  padding: 4px 11px;
+  background: #3f4b5a;
+  padding: 6px 12px;
   border-radius: 980px;
   transition: background 0.2s ease;
 }
 
 .btn-nav-cta:hover {
-  background: #0077ed;
+  background: #273342;
 }
 
 /* --------------------------------------------------------------------------
    Hero Section
    -------------------------------------------------------------------------- */
 .landing-hero {
-  padding-top: 100px;
-  padding-bottom: 60px;
+  padding-top: 92px;
+  padding-bottom: 52px;
   position: relative;
   text-align: center;
 }
@@ -197,14 +197,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 3rem;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
 }
 
 .btn-hero-primary {
   height: 44px;
   padding: 0 1.5rem;
-  background: #06c;
+  background: #3f4b5a;
   color: #ffffff;
   font-size: 1.0625rem;
   font-weight: 400;
@@ -216,15 +216,15 @@
 }
 
 .btn-hero-primary:hover {
-  background: #0077ed;
+  background: #273342;
 }
 
 .btn-hero-secondary {
   height: 44px;
   padding: 0 1.5rem;
   background: transparent;
-  border: 1px solid #06c;
-  color: #06c;
+  border: 1px solid #aeb7c3;
+  color: #3f4b5a;
   font-size: 1.0625rem;
   font-weight: 400;
   border-radius: 980px;
@@ -235,8 +235,8 @@
 }
 
 .btn-hero-secondary:hover {
-  background: #06c;
-  color: #ffffff;
+  background: #eef1f4;
+  color: #273342;
 }
 
 /* --------------------------------------------------------------------------
@@ -401,7 +401,7 @@
 }
 
 .citation-pill-btn:hover {
-  background: #06c;
+  background: #3f4b5a;
   color: #ffffff;
 }
 
@@ -828,18 +828,18 @@
 }
 
 .btn-pricing-cta.primary:hover {
-  background: #0077ed;
+  background: #273342;
 }
 
 .btn-pricing-cta.secondary {
   background: transparent;
-  border: 1px solid #06c;
-  color: #06c;
+  border: 1px solid #aeb7c3;
+  color: #3f4b5a;
 }
 
 .btn-pricing-cta.secondary:hover {
-  background: #06c;
-  color: #ffffff;
+  background: #eef1f4;
+  color: #273342;
 }
 
 /* --------------------------------------------------------------------------
@@ -935,7 +935,7 @@
 .btn-cta-banner {
   height: 44px;
   padding: 0 1.5rem;
-  background: #06c;
+  background: #65758a;
   color: #ffffff;
   font-size: 1.0625rem;
   font-weight: 400;
@@ -947,7 +947,7 @@
 }
 
 .btn-cta-banner:hover {
-  background: #0077ed;
+  background: #526174;
 }
 
 /* --------------------------------------------------------------------------
@@ -1038,5 +1038,17 @@
 
   .cta-banner-title {
     font-size: 2rem;
+  }
+
+  .landing-container { padding: 0 1rem; }
+
+  .hero-cta-group { width: 100%; gap: 0.5rem; }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    flex: 1;
+    justify-content: center;
+    padding: 0 0.75rem;
+    font-size: 0.92rem;
   }
 }

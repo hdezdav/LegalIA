@@ -86,6 +86,7 @@ export function App() {
 
   // Injected text from Prompts/Files into Chat
   const [injectedText, setInjectedText] = useState<string | null>(null);
+  const [injectedFile, setInjectedFile] = useState<ParsedFile | null>(null);
 
   // Real-time Token Quota State (synced across sidebar, panel, and completions)
   const [quota, setQuota] = useState<TokenQuota | null>(null);
@@ -99,7 +100,7 @@ export function App() {
 
   useEffect(() => {
     refreshQuota();
-    const interval = setInterval(refreshQuota, 8000);
+    const interval = setInterval(refreshQuota, 3000);
     const handleFocus = () => refreshQuota();
     window.addEventListener('focus', handleFocus);
     return () => {
@@ -288,6 +289,7 @@ export function App() {
   };
 
   const handleInsertFileToChat = (file: ParsedFile) => {
+    setInjectedFile(file);
     setInjectedText(
       `Analiza este documento (${file.filename}) y realiza un resumen ejecutivo procesal identificando partes, pretensiones, hechos clave y normas aplicables:`
     );
@@ -415,6 +417,7 @@ export function App() {
           memories={memories}
           memoriesEnabled={memoriesConfig.enabled}
           injectedText={injectedText}
+          injectedFile={injectedFile}
           sidebarCollapsed={!sidePanelOpen}
           selectedModelId={selectedModelId}
           onSelectModel={setSelectedModelId}
@@ -432,6 +435,7 @@ export function App() {
             setSidePanelOpen(true);
           }}
           onInjectedTextConsumed={() => setInjectedText(null)}
+          onInjectedFileConsumed={() => setInjectedFile(null)}
           onNewChat={handleNewConversation}
           onMessageComplete={refreshQuota}
         />

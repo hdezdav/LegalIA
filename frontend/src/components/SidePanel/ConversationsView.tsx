@@ -64,6 +64,16 @@ export function ConversationsView({
 
   const sorted = [...filtered].sort((a, b) => b.updated_at - a.updated_at);
 
+  const getConversationSection = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return 'Hoy';
+    if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
+    return 'Anteriores';
+  };
+
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (confirmDeleteId === id) {
@@ -105,19 +115,23 @@ export function ConversationsView({
           </div>
         ) : (
           <div className="sidepanel-items-stack">
-            {sorted.map((conv) => {
+            {sorted.map((conv, index) => {
               const spec =
                 SPECIALIZATIONS.find((s) => s.id === conv.specialization) ||
                 SPECIALIZATIONS[0];
               const isActive = conv.id === activeConversationId;
               const isConfirm = confirmDeleteId === conv.id;
 
+              const section = getConversationSection(conv.updated_at);
+              const previousSection = index > 0 ? getConversationSection(sorted[index - 1].updated_at) : null;
+
               return (
-                <div
-                  key={conv.id}
-                  className={`sidepanel-chat-item ${isActive ? 'active' : ''}`}
-                  onClick={() => onSelect(conv.id)}
-                >
+                <div key={conv.id}>
+                  {section !== previousSection && <div className="conversation-section-label">{section}</div>}
+                  <div
+                    className={`sidepanel-chat-item ${isActive ? 'active' : ''}`}
+                    onClick={() => onSelect(conv.id)}
+                  >
                   <div className="chat-item-icon" style={{ color: spec.color }}>
                     <SpecializationIcon id={spec.id} size={16} />
                   </div>
@@ -135,6 +149,7 @@ export function ConversationsView({
                   >
                     <TrashIcon size={14} />
                   </button>
+                  </div>
                 </div>
               );
             })}

@@ -115,7 +115,12 @@ export interface TokenQuota {
   used_millions: number;
   status: string;
   days_remaining?: number;
+  requests_remaining?: number;
+  request_count_month?: number;
   rpm_limit?: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cache_read_tokens?: number;
 }
 
 // --- Prompts ---
@@ -152,15 +157,25 @@ export interface MemoriesConfig {
   maxTokens: number;
 }
 
-// --- Agents ---
+export interface AgentToolsConfig {
+  rag_corpus?: boolean;
+  docx_export?: boolean;
+  labor_calculator?: boolean;
+  interactive_forms?: boolean;
+}
 
 export interface Agent {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  icon?: string;
+  avatar?: string;
+  model?: string;
   instructions: string;
   specialization: LegalSpecializationId;
+  conversation_starters?: string[];
+  tools?: AgentToolsConfig;
+  is_preset?: boolean;
   created_at: number;
   updated_at: number;
 }

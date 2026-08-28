@@ -10,13 +10,13 @@
 
 /* Top Bar */
 .chat-topbar {
-  height: 56px;
+  min-height: 56px;
   padding: 0 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  background-color: var(--bg-app);
   z-index: 20;
 }
 
@@ -47,7 +47,7 @@
 .chat-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1rem 2rem;
+  padding: 1.35rem 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -62,13 +62,13 @@
 /* Empty State / Hero Greeting (Centered) */
 .empty-hero-container {
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
   padding: 0 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.75rem;
-  margin-top: -6vh;
+  gap: 1.35rem;
+  margin-top: -2vh;
 }
 
 .empty-greeting-row {
@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 10px 25px rgba(56, 189, 248, 0.15));
+  filter: none;
 }
 
 .empty-greeting-title {
@@ -96,6 +96,10 @@
   color: var(--text-primary);
   line-height: 1.25;
   margin: 0;
+}
+
+.empty-greeting-title::first-line {
+  letter-spacing: -0.04em;
 }
 
 .empty-greeting-subtitle {
@@ -109,15 +113,95 @@
 /* Centered Capsule Composer */
 .centered-composer-wrapper {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.welcome-prompt-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.welcome-prompt-pill {
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.welcome-prompt-pill:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+
+.question-rail {
+  width: 100%;
+  margin: 0 0 0.5rem;
+}
+
+.question-rail-label {
+  display: block;
+  margin: 0 0 0.35rem 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.question-rail-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.question-rail-more {
+  padding: 0.45rem 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.question-rail-option {
+  max-width: 100%;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-align: left;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.question-rail-option:hover {
+  border-color: var(--border-focus);
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.question-rail-option:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .composer-capsule {
   width: 100%;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-medium);
-  border-radius: 26px;
-  box-shadow: var(--shadow-md);
-  padding: 0.85rem 1.15rem 0.65rem;
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 0.7rem 0.9rem 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -126,7 +210,7 @@
 
 .composer-capsule:focus-within {
   border-color: var(--border-focus);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
 }
 
 .capsule-textarea {
@@ -312,12 +396,12 @@
 
 /* Sticky Bottom Input Area for Active Chat */
 .chat-input-area {
-  padding: 0 1.25rem 1rem;
+  padding: 0 1.25rem 0.65rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.45rem;
-  background: linear-gradient(to top, var(--bg-app) 75%, transparent);
+  background: var(--bg-app);
 }
 
 .input-shell-capsule {
@@ -325,9 +409,9 @@
   width: 100%;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-medium);
-  border-radius: 24px;
-  box-shadow: var(--shadow-md);
-  padding: 0.75rem 1rem 0.6rem;
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 0.55rem 0.85rem 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -336,6 +420,7 @@
 
 .input-shell-capsule:focus-within {
   border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
 }
 
 .input-textarea {
@@ -371,17 +456,60 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+  .question-rail-options {
+    flex-direction: column;
+  }
+
+  .question-rail-option {
+    width: 100%;
+  }
+
+  .welcome-prompt-grid {
+    grid-template-columns: 1fr;
+  }
+
   .empty-greeting-title {
     font-size: 1.4rem;
   }
 
   .composer-capsule {
-    border-radius: 20px;
-    padding: 0.75rem 0.85rem;
+    border-radius: 16px;
+    padding: 0.65rem 0.75rem;
   }
 
   .empty-bottom-footer {
     display: none;
+  }
+
+  .chat-topbar {
+    padding: 0 0.7rem;
+    gap: 0.35rem;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    gap: 0.25rem;
+  }
+
+  .topbar-left .topbar-chip-btn,
+  .topbar-left .spec-trigger-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-scroll {
+    padding: 0.85rem 0.65rem 1.25rem;
+  }
+
+  .chat-input-area {
+    padding: 0 0.65rem 0.6rem;
+  }
+
+  .input-shell-capsule {
+    border-radius: 16px;
+    padding: 0.5rem 0.65rem 0.45rem;
   }
 }
 
@@ -549,9 +677,31 @@
 
 .badge-tag {
   font-size: 0.68rem;
-  color: #059669;
-  background: #ecfdf5;
-  padding: 1px 5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-surface-hover);
+  padding: 0.1rem 0.35rem;
   border-radius: 4px;
 }
 
+/* Voice Dictation Pulse Animation */
+.capsule-icon-btn.recording-pulse {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  animation: pulseVoice 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseVoice {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    transform: scale(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    transform: scale(1);
+  }
+}

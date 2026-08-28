@@ -52,7 +52,7 @@ export function exportConversationToMarkdown(conversation: Conversation): string
   }
 
   markdown += '---\n\n';
-  markdown += '*Generado por Legalia · NO EVIDENCE → NO ANSWER*\n';
+  markdown += '*Generado por Legalia · Plataforma de Inteligencia Artificial Jurídica para Colombia*\n';
 
   return markdown;
 }

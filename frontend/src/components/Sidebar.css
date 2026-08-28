@@ -21,6 +21,21 @@
   width: 100%;
 }
 
+.rail-brand {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.15rem;
+}
+
+.rail-brand:hover {
+  background-color: var(--bg-surface-hover);
+}
+
 .rail-btn {
   width: 36px;
   height: 36px;
@@ -90,7 +105,7 @@
 
 .rail-token-bar-fill {
   width: 100%;
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  background: #10b981;
   border-radius: 99px;
   transition: height 0.4s ease;
 }
@@ -245,7 +260,7 @@
 
 .quota-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  background: #10b981;
   border-radius: 99px;
   transition: width 0.4s ease;
 }
@@ -291,4 +306,23 @@
 .profile-logout-item:hover {
   background-color: #fee2e2;
   color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .sidebar-rail {
+    width: 48px;
+  }
+
+  .rail-btn,
+  .rail-brand {
+    width: 34px;
+    height: 34px;
+  }
+
+  .profile-popover-menu {
+    position: fixed;
+    left: 56px;
+    bottom: 0.75rem;
+    max-width: calc(100vw - 68px);
+  }
 }

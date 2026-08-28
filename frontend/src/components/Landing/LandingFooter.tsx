@@ -35,7 +35,7 @@ export function LandingFooter({ onGoToApp }: LandingFooterProps) {
                 <ScalesIcon size={18} />
               </div>
               <span className="brand-title">
-                Legal<span>ia</span>
+                Legalia
               </span>
               <span className="brand-colombia-tag">Colombia</span>
             </div>

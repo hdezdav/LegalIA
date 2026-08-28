@@ -20,8 +20,12 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-import httpx
-from bs4 import BeautifulSoup
+try:
+    import httpx
+    from bs4 import BeautifulSoup
+except ImportError:
+    httpx = None  # type: ignore
+    BeautifulSoup = None  # type: ignore
 
 logging.basicConfig(
     level=logging.INFO,
@@ -465,6 +469,14 @@ def main():
         print("=" * 85)
         print(f"Total normas catalogadas: {len(CATALOGO_NORMAS)}\n")
         return
+
+    if httpx is None or BeautifulSoup is None:
+        print("\n❌ Dependencias requeridas (`httpx`, `beautifulsoup4`) no encontradas en este entorno.")
+        print("💡 Ejecuta el script dentro del contenedor Docker (donde ya están instaladas):")
+        print("   docker compose exec legalia-api python scripts/scrape_corpus.py --all")
+        print("\n💡 O instálalas en tu entorno local:")
+        print("   pip install httpx beautifulsoup4 lxml\n")
+        sys.exit(1)
 
     if args.id:
         # Buscar en catálogo o construir entrada genérica

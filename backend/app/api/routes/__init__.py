@@ -9,7 +9,7 @@ implemented; there are no placeholder endpoints.
 
 from fastapi import APIRouter
 
-from app.api.routes import admin, auth, chat, files, health
+from app.api.routes import admin, auth, chat, files, health, tools
 
 api_router = APIRouter()
 
@@ -17,6 +17,7 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(auth.router, prefix="/auth")
 api_router.include_router(files.router, prefix="/files")
+api_router.include_router(tools.router)
 api_router.include_router(admin.router)
 # No prefix: the router already declares OpenAI-compatible paths
 # (/chat/completions, /models), and API_V1_PREFIX is applied once in app.main.

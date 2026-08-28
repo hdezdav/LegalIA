@@ -159,6 +159,9 @@ export function SidePanel({
 
   return (
     <aside className="sidepanel-dock">
+      <div className="sidepanel-mobile-header">
+        <span className="sidepanel-mobile-title">{activeTab === 'chats' ? 'Conversaciones' : activeTab}</span>
+      </div>
       {renderContent()}
     </aside>
   );

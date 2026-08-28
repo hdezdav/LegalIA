@@ -47,8 +47,8 @@ logger = get_logger(__name__)
     "/usage/quota",
     summary="Get live Nodule AI token quota and balance",
 )
-async def get_token_quota():
-    return await get_nodule_quota()
+async def get_token_quota(session: DbSession):
+    return await get_nodule_quota(session=session)
 
 
 #: The model name clients select. Deliberately opaque: which Claude model, which

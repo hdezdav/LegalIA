@@ -54,7 +54,7 @@
 
 .file-badge-icon.docx,
 .file-badge-icon.doc {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: var(--text-secondary);
 }
 
 .file-badge-icon.xlsx,
@@ -219,9 +219,9 @@
 .chat-drag-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(37, 99, 235, 0.05);
+  background: rgba(71, 85, 105, 0.06);
   backdrop-filter: blur(2px);
-  border: 2px dashed #2563eb;
+  border: 2px dashed var(--border-focus);
   border-radius: var(--radius-lg);
   z-index: 60;
   display: flex;
@@ -236,8 +236,8 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,4 +439,3 @@
   overflow-y: auto;
   font-family: inherit;
 }
-

@@ -45,9 +45,10 @@ echo "🏗️  Reconstruyendo y reiniciando contenedores en el servidor..."
 sshpass -e ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_IP}" << 'EOF'
 cd /opt/legalia
 
-# Rebuild only if code changed
+# Rebuild and recreate cleanly without container name collisions
 docker compose -f docker-compose.prod.yml build legalia-frontend legalia-api
-docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans legalia-frontend legalia-api
+docker rm -f legalia-frontend legalia-api 2>/dev/null || true
+docker compose -f docker-compose.prod.yml up -d --remove-orphans legalia-frontend legalia-api
 
 echo "⏳ Esperando confirmación de salud de los servicios..."
 sleep 4

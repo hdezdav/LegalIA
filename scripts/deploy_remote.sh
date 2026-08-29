@@ -47,7 +47,7 @@ cd /opt/legalia
 
 # Rebuild only if code changed
 docker compose -f docker-compose.prod.yml build legalia-frontend legalia-api
-docker compose -f docker-compose.prod.yml up -d --remove-orphans
+docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans legalia-frontend legalia-api
 
 echo "⏳ Esperando confirmación de salud de los servicios..."
 sleep 4
@@ -57,13 +57,11 @@ EOF
 # 4. Verify remote endpoint
 echo ""
 echo "🔍 Verificando salud del endpoint público..."
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${VPS_IP}/health" || echo "failed")
-MODELS_COUNT=$(curl -s "http://${VPS_IP}/api/v1/models" | grep -o '"id":' | wc -l | tr -d ' ' || echo "0")
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${VPS_IP}/health" || echo "000")
 
 if [ "$HTTP_STATUS" = "200" ]; then
     echo "✅ Despliegue completado con ÉXITO."
     echo "   - Endpoint Health: HTTP 200 OK"
-    echo "   - Modelos Nodule activos: ${MODELS_COUNT}"
     echo "   - URL: http://${VPS_IP}/"
 else
     echo "⚠️  Atención: El endpoint devolvió status ${HTTP_STATUS}."

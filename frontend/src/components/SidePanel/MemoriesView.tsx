@@ -59,7 +59,7 @@ export function MemoriesView({
         <div className="sidepanel-search-box">
           <input
             type="text"
-            placeholder="Filter memories..."
+            placeholder="Filtrar memorias..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           />
@@ -93,7 +93,7 @@ export function MemoriesView({
             <div className="empty-card-icon-circle">
               <BrainIcon size={24} />
             </div>
-            <h3 className="empty-card-title">No memories yet</h3>
+            <h3 className="empty-card-title">Sin memorias guardadas</h3>
             <p className="empty-card-desc">
               Sin memorias. Créelas manualmente o pida a la IA que recuerde algo relevante para sus consultas jurídicas.
             </p>

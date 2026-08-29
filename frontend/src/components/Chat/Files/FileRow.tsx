@@ -54,11 +54,8 @@ export function FileRow({ files, onRemove, onQuickAction }: FileRowProps) {
                   {file.filename}
                 </div>
                 <div className="file-chip-meta">
-                  <span className="token-savings-badge">
-                    ⚡ -{file.stats.token_reduction_pct}% tokens
-                  </span>
                   <span className="file-chip-type-tag">
-                    • {file.analysis.doc_type}
+                    {file.analysis.doc_type}
                   </span>
                 </div>
               </div>
@@ -102,7 +99,7 @@ export function FileRow({ files, onRemove, onQuickAction }: FileRowProps) {
           className="lawyer-action-pill"
           onClick={() => onQuickAction('verify', files[0])}
         >
-          <span>⚖️ Cotejar Precedente y Normas</span>
+          <span>Cotejar precedente y normas</span>
         </button>
       </div>
     </div>

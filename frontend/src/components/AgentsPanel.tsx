@@ -3,7 +3,8 @@ import { Agent, LegalSpecializationId } from '../types';
 import { SPECIALIZATIONS } from '../constants';
 import { getTranslations } from '../i18n';
 import { generateUUID } from '../utils';
-import { PlusIcon, EditIcon, TrashIcon, CheckIcon } from './Icons';
+import { PlusIcon, EditIcon, TrashIcon, CheckIcon, BotIcon } from './Icons';
+import { AgentSymbol } from './AgentSymbol';
 import './AgentsPanel.css';
 
 const t = getTranslations('es');
@@ -30,7 +31,7 @@ export function AgentsPanel({
 
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formIcon, setFormIcon] = useState('⚖️');
+  const [formIcon, setFormIcon] = useState('scale');
   const [formInstructions, setFormInstructions] = useState('');
   const [formSpecialization, setFormSpecialization] = useState<LegalSpecializationId>('general');
 
@@ -38,7 +39,7 @@ export function AgentsPanel({
     setEditing(null);
     setFormName('');
     setFormDescription('');
-    setFormIcon('⚖️');
+    setFormIcon('scale');
     setFormInstructions('');
     setFormSpecialization('general');
     setView('editor');
@@ -48,7 +49,7 @@ export function AgentsPanel({
     setEditing(agent);
     setFormName(agent.name);
     setFormDescription(agent.description);
-    setFormIcon(agent.icon || '⚖️');
+    setFormIcon(agent.icon || 'scale');
     setFormInstructions(agent.instructions);
     setFormSpecialization(agent.specialization);
     setView('editor');
@@ -75,20 +76,18 @@ export function AgentsPanel({
 
   const handleSelectAgent = (id: string | null) => {
     onSelect(id);
-    onClose();
   };
 
   return (
-    <div className="agents-panel">
-      <div className="panel-backdrop" onClick={onClose} />
-      <div className="panel-content">
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="agents-panel" onClick={(e) => e.stopPropagation()}>
         <header className="panel-header">
           <div>
             <h2 className="panel-title">{t.agents.title}</h2>
             <p className="panel-subtitle">{t.agents.subtitle}</p>
           </div>
           {view === 'list' && (
-            <button className="btn-primary" onClick={startNew}>
+            <button className="primary-btn" onClick={startNew}>
               <PlusIcon size={16} />
               {t.agents.newAgent}
             </button>
@@ -100,7 +99,7 @@ export function AgentsPanel({
             <div className="agent-card agent-card-none" onClick={() => handleSelectAgent(null)}>
               <div className="agent-card-header">
                 <div className="agent-card-icon-row">
-                  <span className="agent-card-icon">🤖</span>
+                  <span className="agent-card-icon"><BotIcon size={18} /></span>
                   <h4 className="agent-card-name">{t.agents.noAgent}</h4>
                 </div>
                 {activeAgentId === null && (
@@ -121,7 +120,7 @@ export function AgentsPanel({
               <div key={agent.id} className="agent-card">
                 <div className="agent-card-header">
                   <div className="agent-card-icon-row" onClick={() => handleSelectAgent(agent.id)}>
-                    <span className="agent-card-icon">{agent.icon}</span>
+                    <span className="agent-card-icon"><AgentSymbol icon={agent.icon} size={18} /></span>
                     <h4 className="agent-card-name">{agent.name}</h4>
                   </div>
                   <div className="agent-card-actions">

@@ -205,6 +205,9 @@ export function App() {
 
   const handleSelectConversation = (id: string) => {
     setActiveConversationId(id);
+    if (window.innerWidth <= 768) {
+      setSidePanelOpen(false);
+    }
   };
 
   const handleUpdateConversation = (updated: Conversation) => {
@@ -277,6 +280,9 @@ export function App() {
 
   const handleUsePrompt = (promptBody: string) => {
     setInjectedText(promptBody);
+    if (window.innerWidth <= 768) {
+      setSidePanelOpen(false);
+    }
   };
 
   // Files Handlers
@@ -293,6 +299,9 @@ export function App() {
     setInjectedText(
       `Analiza este documento (${file.filename}) y realiza un resumen ejecutivo procesal identificando partes, pretensiones, hechos clave y normas aplicables:`
     );
+    if (window.innerWidth <= 768) {
+      setSidePanelOpen(false);
+    }
   };
 
   // Memories Handlers
@@ -414,6 +423,9 @@ export function App() {
           conversation={activeConversation}
           currentUser={currentUser}
           activeAgent={agents.find((a) => a.id === activeAgentId) || null}
+          agents={agents}
+          activeAgentId={activeAgentId}
+          onSelectAgent={setActiveAgentId}
           memories={memories}
           memoriesEnabled={memoriesConfig.enabled}
           injectedText={injectedText}
@@ -423,7 +435,7 @@ export function App() {
           onSelectModel={setSelectedModelId}
           onUpdateConversation={handleUpdateConversation}
           onOpenSidebar={() => {
-            setSidePanelOpen(true);
+            setSidePanelOpen((prev) => !prev);
             if (!activeTab) setActiveTab('chats');
           }}
           onOpenPrompts={() => {

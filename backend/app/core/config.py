@@ -85,6 +85,9 @@ class Settings(BaseSettings):
     # checks never silently inherit the answer model's cost.
     VERIFIER_MODEL: str = "claude-haiku-4.5"
 
+    # --- Web Search (Tavily AI & DDGS) ------------------------------------
+    TAVILY_API_KEY: SecretStr | None = None
+
     # --- Embeddings -------------------------------------------------------
     # `mock` is a first-class option, not a test artifact: it lets the whole
     # pipeline run end to end with no external API key.
@@ -202,13 +205,11 @@ class Settings(BaseSettings):
         and switching providers across dimensions requires a migration plus a
         re-embed (documented in docs/DATABASE.md).
         """
-        match self.EMBEDDING_PROVIDER:
-            case "alibaba":
-                return self.ALIBABA_EMBEDDING_DIMENSION
-            case "bge":
-                return self.BGE_EMBEDDING_DIMENSION
-            case "mock" | "pending":
-                return self.MOCK_EMBEDDING_DIMENSION
+        if self.EMBEDDING_PROVIDER == "alibaba":
+            return self.ALIBABA_EMBEDDING_DIMENSION
+        elif self.EMBEDDING_PROVIDER == "bge":
+            return self.BGE_EMBEDDING_DIMENSION
+        return self.MOCK_EMBEDDING_DIMENSION
 
     @property
     def is_production(self) -> bool:

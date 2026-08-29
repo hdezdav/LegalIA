@@ -1,6 +1,9 @@
-interface IconProps {
+import type { CSSProperties } from 'react';
+
+export interface IconProps {
   size?: number;
   className?: string;
+  style?: CSSProperties;
 }
 
 const base = {
@@ -10,6 +13,14 @@ const base = {
   strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
 };
+
+export function ShieldIcon({ size = 18, className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className} style={style}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
 
 export function LogoIcon({ size = 24, className }: IconProps) {
   return (
@@ -444,6 +455,16 @@ export function RefreshIcon({ size = 16, className }: IconProps) {
       <path d="M23 4v6h-6" />
       <path d="M1 20v-6h6" />
       <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+    </svg>
+  );
+}
+
+export function GlobeIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
     </svg>
   );
 }

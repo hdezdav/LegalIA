@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { api } from '../api';
+import { ScalesIcon } from './Icons';
 import './Auth.css';
 
 interface AuthProps {
@@ -64,21 +65,18 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
         {/* Left Side: Welcome & Toggle Action Panel */}
         <div className="auth-side-panel">
           <div className="auth-brand-badge">
-            <svg className="auth-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ScalesIcon size={22} className="auth-badge-icon" />
             <span className="auth-badge-name">Legalia</span>
           </div>
 
           <div className="auth-panel-content" key={`side-content-${isLogin ? 'login' : 'signup'}`}>
             <h2 className="auth-panel-title">
-              {isLogin ? 'New here?' : 'One of us?'}
+              {isLogin ? '¿Eres nuevo aquí?' : '¿Ya tienes cuenta?'}
             </h2>
             <p className="auth-panel-desc">
               {isLogin
-                ? 'Join us today and discover a world of possibilities. Create your account in seconds!'
-                : 'Welcome back! Sign in to continue consulting certified Colombian legal sources.'}
+                ? 'Únete a LegalIA y consulta jurisprudencia y normativa colombiana con inteligencia artificial certificada.'
+                : '¡Bienvenido de nuevo! Inicia sesión para continuar consultando fuentes jurídicas oficiales y minutas.'}
             </p>
             <button
               type="button"
@@ -86,7 +84,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
               className="btn-auth-outline"
               disabled={loading}
             >
-              {isLogin ? 'SIGN UP' : 'SIGN IN'}
+              {isLogin ? 'CREAR CUENTA' : 'INICIAR SESIÓN'}
             </button>
           </div>
 
@@ -99,7 +97,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
         <div className="auth-main-panel">
           <div className="auth-form-container">
             <h1 className="auth-title" key={`title-${isLogin ? 'login' : 'signup'}`}>
-              {isLogin ? 'Sign in' : 'Sign up'}
+              {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
             </h1>
 
             <form onSubmit={handleSubmit} className="auth-form-body">
@@ -118,7 +116,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     disabled={loading}
-                    placeholder="Full name"
+                    placeholder="Nombre completo"
                     autoComplete="name"
                   />
                 </div>
@@ -138,7 +136,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  placeholder="Email"
+                  placeholder="Correo electrónico"
                   autoComplete="email"
                 />
               </div>
@@ -157,7 +155,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  placeholder="Password"
+                  placeholder="Contraseña"
                   autoComplete={isLogin ? 'current-password' : 'new-password'}
                   minLength={8}
                 />
@@ -182,7 +180,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                     <span className="btn-spinner" />
                   ) : (
                     <span key={`btn-${isLogin ? 'login' : 'signup'}`} className="btn-text-animated">
-                      {isLogin ? 'LOGIN' : 'SIGN UP'}
+                      {isLogin ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
                     </span>
                   )}
                 </button>
@@ -190,13 +188,13 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
             </form>
 
             <div className="auth-social-section">
-              <p className="auth-social-label">Or sign in with social platforms</p>
+              <p className="auth-social-label">O continúa con tus cuentas profesionales</p>
               <div className="auth-social-buttons">
                 {/* Google */}
                 <button
                   type="button"
                   className="btn-social"
-                  aria-label="Sign in with Google"
+                  aria-label="Acceder con Google"
                   title="Google"
                   onClick={() => setError('Autenticación con Google disponible próximamente')}
                 >
@@ -212,7 +210,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                 <button
                   type="button"
                   className="btn-social"
-                  aria-label="Sign in with Facebook"
+                  aria-label="Acceder con Facebook"
                   title="Facebook"
                   onClick={() => setError('Autenticación con Facebook disponible próximamente')}
                 >
@@ -225,7 +223,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                 <button
                   type="button"
                   className="btn-social"
-                  aria-label="Sign in with Twitter"
+                  aria-label="Acceder con Twitter"
                   title="Twitter"
                   onClick={() => setError('Autenticación con Twitter disponible próximamente')}
                 >
@@ -238,7 +236,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                 <button
                   type="button"
                   className="btn-social"
-                  aria-label="Sign in with LinkedIn"
+                  aria-label="Acceder con LinkedIn"
                   title="LinkedIn"
                   onClick={() => setError('Autenticación con LinkedIn disponible próximamente')}
                 >
@@ -251,13 +249,13 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
 
             {/* Mobile switch helper */}
             <div className="auth-mobile-switch">
-              <span>{isLogin ? "Don't have an account?" : 'Already have an account?'}</span>
+              <span>{isLogin ? "¿No tienes una cuenta?" : '¿Ya tienes una cuenta?'}</span>
               <button
                 type="button"
                 onClick={handleToggleMode}
                 className="btn-mobile-toggle"
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
+                {isLogin ? 'Crear cuenta' : 'Iniciar sesión'}
               </button>
             </div>
 
@@ -267,7 +265,7 @@ export function Auth({ onLogin, onBackToLanding }: AuthProps) {
                 onClick={onBackToLanding}
                 className="btn-back-landing"
               >
-                ← Return to homepage
+                ← Volver a la página principal
               </button>
             )}
           </div>

@@ -184,9 +184,26 @@ class ChatService:
         result = await self.retrieval.retrieve(session, question)
         context_candidates, context_text = self._build_context(result.candidates)
 
+        # Check if live web search is requested
+        is_web_search = "[MODO: BÚSQUEDA WEB" in question or "buscar en internet" in question.lower() or "noticias" in question.lower()
+        web_context = ""
+        if is_web_search:
+            try:
+                from app.services.web_search_service import search_web_async
+                web_results = await search_web_async(question, max_results=4)
+                if web_results:
+                    web_context = "\n\nFUENTES WEB EN VIVO RECUPERADAS (CITA CON FORMATO [Título](url)):\n" + "\n".join(
+                        f"- [{r.title}]({r.url}): {r.snippet}"
+                        for r in web_results
+                    )
+            except Exception as e:
+                logger.warning("Web search failed in chat", extra={"error": str(e)})
+
         # Build appropriate system prompt
         if context_candidates and context_text.strip():
-            system_prompt = self._build_system_prompt(context_text)
+            system_prompt = self._build_system_prompt(context_text + web_context)
+        elif web_context:
+            system_prompt = self._build_general_system_prompt() + f"\n\n{web_context}\n\nDIRECTRIZ DE CITACIÓN WEB: Cita e hipervincula siempre las fuentes web recuperadas usando formato markdown: [Nombre de la Fuente](URL)."
         elif self._is_conversational(question):
             system_prompt = CONVERSATIONAL_SYSTEM_PROMPT
         else:
@@ -277,9 +294,26 @@ class ChatService:
         result = await self.retrieval.retrieve(session, question)
         context_candidates, context_text = self._build_context(result.candidates)
 
+        # Check if live web search is requested
+        is_web_search = "[MODO: BÚSQUEDA WEB" in question or "buscar en internet" in question.lower() or "noticias" in question.lower()
+        web_context = ""
+        if is_web_search:
+            try:
+                from app.services.web_search_service import search_web_async
+                web_results = await search_web_async(question, max_results=4)
+                if web_results:
+                    web_context = "\n\nFUENTES WEB EN VIVO RECUPERADAS (CITA CON FORMATO [Título](url)):\n" + "\n".join(
+                        f"- [{r.title}]({r.url}): {r.snippet}"
+                        for r in web_results
+                    )
+            except Exception as e:
+                logger.warning("Web search failed in streaming chat", extra={"error": str(e)})
+
         # Build appropriate system prompt
         if context_candidates and context_text.strip():
-            system_prompt = self._build_system_prompt(context_text)
+            system_prompt = self._build_system_prompt(context_text + web_context)
+        elif web_context:
+            system_prompt = self._build_general_system_prompt() + f"\n\n{web_context}\n\nDIRECTRIZ DE CITACIÓN WEB: Cita e hipervincula siempre las fuentes web recuperadas usando formato markdown: [Nombre de la Fuente](URL)."
         elif self._is_conversational(question):
             system_prompt = CONVERSATIONAL_SYSTEM_PROMPT
         else:
@@ -450,24 +484,22 @@ METODOLOGÍA Y REGLAS DE RESPUESTA:
    - Emplea español jurídico formal, técnico, pulcro y preciso.
 
 4. **Tarjetas Interactivas de Selección y Formularios de Entrada**:
-   - **Opciones de selección guiada**: Cuando formules preguntas de seguimiento, rutas de acción o alternativas para que el usuario elija con un clic, incluye un bloque ```interactive-options:
+   - **Opciones de selección guiada**: Cuando formules preguntas de seguimiento, incluye un bloque ```interactive-options con máximo 2 a 3 opciones breves y concisas (2 a 5 palabras por opción):
    ```interactive-options
-   title: ¿Qué vía procesal deseas iniciar?
-   - [Acción de Tutela] - Por vulneración inmediata de derechos fundamentales
-   - [Derecho de Petición] - Para solicitar información previa a la entidad
-   - [Proceso Ordinario Declarativo] - Reclamación indemnizatoria plena
+   title: Siguiente paso
+   - [Acción de Tutela]
+   - [Derecho de Petición]
+   - [Proceso Ordinario]
    ```
    - **Formularios de datos (Intake)**: Cuando el usuario pida redactar un documento y requieras datos esenciales para personalizarlo, incluye un bloque ```legal-form:
    ```legal-form
    title: Datos para redactar el documento
-   description: Completa los datos para generar la minuta personalizada
-   - label: Nombre Completo
-     placeholder: Ej. Juan Carlos Pérez
-   - label: Cédula de Ciudadanía
+   description: Completa los datos esenciales
+   - label: Nombre de las Partes
+     placeholder: Ej. Juan Pérez / EPS Sanitas
+   - label: Identificación (C.C. / NIT)
      placeholder: Ej. C.C. 1.020.345.678
-   - label: Entidad o Parte Contraparte
-     placeholder: Ej. EPS / Arrendatario
-   - label: Motivo o Pretensión Principal
+   - label: Motivo o Pretensión
      placeholder: Ej. Entrega de medicamentos / Canon pactado
    ```
 
@@ -498,11 +530,11 @@ DIRECTRICES DE EXCELENCIA:
 2. Distingue con exactitud la naturaleza de los vicios, términos de prescripción/caducidad y cargas procesales.
 3. Estructura las respuestas con claridad, títulos ordenados y tablas comparativas cuando corresponda.
 4. **Tarjetas de Opciones y Formularios**:
-   - Presenta opciones de elección rápida con ```interactive-options:
+   - Presenta opciones de elección rápida con ```interactive-options (máximo 2 a 3 opciones cortas de 2-5 palabras):
    ```interactive-options
-   title: Selecciona una opción para continuar
-   - [Opción 1] - Descripción breve
-   - [Opción 2] - Descripción breve
+   title: Siguiente paso
+   - [Opción 1]
+   - [Opción 2]
    ```
    - Solicita datos con ```legal-form:
    ```legal-form

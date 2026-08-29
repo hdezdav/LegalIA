@@ -310,13 +310,22 @@
 
 @media (max-width: 768px) {
   .sidebar-rail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 48px;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 100;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-subtle);
   }
 
   .rail-btn,
   .rail-brand {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   .profile-popover-menu {
@@ -324,5 +333,7 @@
     left: 56px;
     bottom: 0.75rem;
     max-width: calc(100vw - 68px);
+    width: 270px;
+    z-index: 110;
   }
 }

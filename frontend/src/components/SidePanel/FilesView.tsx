@@ -36,7 +36,7 @@ export function FilesView({
         onAddFile(parsed);
       }
     } catch (err: any) {
-      setError(err.message || 'Error al procesar el archivo con MarkItDown');
+      setError(err.message || 'No se pudo procesar el archivo. Intenta de nuevo.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -106,10 +106,10 @@ export function FilesView({
         >
           <PaperclipIcon size={20} className="dashed-card-icon" />
           <div className="dashed-card-title">
-            {isUploading ? 'Procesando con MarkItDown...' : 'Arrastra o selecciona archivos'}
+            {isUploading ? 'Preparando archivo…' : 'Arrastra o selecciona archivos'}
           </div>
           <div className="dashed-card-desc">
-            PDF, DOCX, sentencias o contratos. Conversión a Markdown para ahorro de hasta 75% en tokens.
+            PDF, DOCX, sentencias o contratos. Puedes revisar el contenido antes de usarlo en una consulta.
           </div>
         </div>
 
@@ -146,9 +146,6 @@ export function FilesView({
 
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', margin: '0.25rem 0' }}>
                   <span className="prompt-cat-badge">{file.analysis.doc_type}</span>
-                  <span className="token-saving-pill" style={{ fontSize: '0.68rem' }}>
-                    ⚡ MarkItDown: -{file.stats.token_reduction_pct}% tokens
-                  </span>
                 </div>
 
                 {file.analysis.parties.demandante && (
@@ -164,7 +161,7 @@ export function FilesView({
 
                 <div className="prompt-card-footer" style={{ marginTop: '0.4rem' }}>
                   <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
-                    {file.stats.word_count} palabras · ~{file.stats.markdown_tokens_est} tokens
+                    {file.stats.word_count} palabras
                   </span>
                   <button
                     className="btn-use-prompt"

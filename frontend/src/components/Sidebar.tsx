@@ -13,7 +13,6 @@ import {
   ScalesIcon,
   LogOutIcon,
   SparklesIcon,
-  LogoIcon,
 } from './Icons';
 import './Sidebar.css';
 
@@ -103,10 +102,6 @@ export function Sidebar({
     <aside className="sidebar-rail">
       {/* Top Rail Navigation */}
       <div className="rail-top">
-        <button className="rail-brand" onClick={onGoToLanding} title="LegalIA">
-          <LogoIcon size={20} />
-        </button>
-
         <button
           className={`rail-btn ${isSidePanelOpen ? 'active' : ''}`}
           onClick={handleToggleSidePanel}

@@ -54,6 +54,7 @@ interface SidePanelProps {
 export function SidePanel({
   activeTab,
   isOpen,
+  onClose,
   quota,
   conversations,
   activeConversationId,
@@ -157,12 +158,40 @@ export function SidePanel({
     }
   };
 
+  if (!isOpen) return null;
+
+  const tabTitle =
+    activeTab === 'chats'
+      ? 'Conversaciones'
+      : activeTab === 'agents'
+      ? 'Agentes Jurídicos'
+      : activeTab === 'prompts'
+      ? 'Plantillas de Prompts'
+      : activeTab === 'memories'
+      ? 'Memoria'
+      : activeTab === 'files'
+      ? 'Archivos'
+      : activeTab === 'bookmarks'
+      ? 'Marcadores'
+      : 'Instrucciones';
+
   return (
-    <aside className="sidepanel-dock">
-      <div className="sidepanel-mobile-header">
-        <span className="sidepanel-mobile-title">{activeTab === 'chats' ? 'Conversaciones' : activeTab}</span>
-      </div>
-      {renderContent()}
-    </aside>
+    <>
+      <div className="sidepanel-backdrop" onClick={onClose} aria-hidden="true" />
+      <aside className="sidepanel-dock">
+        <div className="sidepanel-mobile-header">
+          <span className="sidepanel-mobile-title">{tabTitle}</span>
+          <button
+            type="button"
+            className="sidepanel-mobile-close-btn"
+            onClick={onClose}
+            aria-label="Cerrar panel"
+          >
+            ✕
+          </button>
+        </div>
+        {renderContent()}
+      </aside>
+    </>
   );
 }

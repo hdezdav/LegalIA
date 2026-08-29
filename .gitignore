@@ -91,3 +91,6 @@ corpus/*
 # Evaluation results
 evaluation/results/*
 !evaluation/results/.gitkeep
+
+# Reference / Scratch
+.scratch_librechat/

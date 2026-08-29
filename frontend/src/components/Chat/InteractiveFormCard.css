@@ -1,160 +1,306 @@
-/* Interactive Form Card - Minimalist LibreChat White Aesthetic */
+/* Contextual legal intake card: neutral, compact, and progressive. */
 
-.interactive-form-card {
-  margin: 0.75rem 0;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e2e8f0);
-  background: var(--bg-surface, #ffffff);
-  padding: 0.875rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-[data-theme='dark'] .interactive-form-card {
-  background: var(--bg-surface, #18181b);
-  border-color: var(--border-default, #27272a);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-.form-card-header {
-  margin-bottom: 0.75rem;
-}
-
-.form-card-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 0.25rem;
-}
-
-[data-theme='dark'] .form-card-badge {
-  background: #27272a;
-  color: #a1a1aa;
-  border-color: #3f3f46;
-}
-
-.form-card-title {
+.apple-form-card {
+  width: 100%;
+  max-width: 680px;
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-primary, #0f172a);
-  line-height: 1.3;
-}
-
-.form-card-desc {
-  margin: 0.15rem 0 0 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.3;
-}
-
-.form-card-body {
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid #dedee2;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(31, 31, 36, 0.08);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
+  gap: 0.85rem;
+  box-sizing: border-box;
+  animation: appleCardEnter 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] .apple-form-card {
+  background-color: var(--bg-surface);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes appleCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.apple-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.75rem;
 }
 
-.form-fields-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.625rem;
-}
-
-.form-field-group {
+.apple-form-title-group {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 0;
 }
 
-.form-field-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-primary, #334155);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-[data-theme='dark'] .form-field-label {
-  color: #cbd5e1;
-}
-
-.field-required {
-  color: #ef4444;
-  margin-left: 0.2rem;
-}
-
-.form-field-input {
-  width: 100%;
-  height: 34px;
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-default, #e2e8f0);
-  background: var(--bg-surface, #ffffff);
-  color: var(--text-primary, #0f172a);
-  font-size: 0.8125rem;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
-}
-
-[data-theme='dark'] .form-field-input {
-  background: #27272a;
-  border-color: #3f3f46;
-  color: #f4f4f5;
-}
-
-.form-field-input:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.15);
-}
-
-.form-field-select {
-  cursor: pointer;
-  height: 34px;
-}
-
-.form-card-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0.25rem;
-}
-
-.form-submit-btn {
+.apple-form-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.45rem 0.95rem;
-  border-radius: 6px;
-  background: var(--action-primary);
-  color: #ffffff;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b6b73;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.apple-form-step { color: #77777f; font-size: 0.72rem; font-weight: 600; }
+
+.apple-form-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.apple-form-description {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.apple-form-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  line-height: 1;
   border: none;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.15s ease;
+  transition: all 120ms ease;
+  flex-shrink: 0;
 }
 
-.form-submit-btn:hover {
-  background: var(--action-primary-hover);
+.apple-form-close-btn:hover {
+  background: #f0f0f2;
+  color: var(--text-primary);
 }
 
-.form-submit-btn:active {
-  transform: translateY(0);
+.apple-form-close-btn:active {
+  transform: scale(0.92);
 }
 
-.form-submit-btn:focus-visible {
-  outline: 2px solid var(--border-focus);
+/* Form Body & Inset Grouped Fields */
+.apple-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.apple-form-fields-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.apple-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.apple-field-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #34343a;
+}
+
+.apple-field-required {
+  color: #55555d;
+}
+
+.apple-field-input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  background-color: #f7f7f8;
+  border: 1px solid #d8d8dc;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  box-sizing: border-box;
+}
+
+.apple-field-input::placeholder {
+  color: #92929a;
+}
+
+.apple-field-input:hover {
+  border-color: #888890;
+}
+
+.apple-field-input:focus {
+  border-color: var(--border-focus);
+  background-color: var(--bg-surface);
+  box-shadow: 0 0 0 3px rgba(80, 80, 88, 0.14);
+}
+
+[data-theme='dark'] .apple-field-input {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .apple-field-input:focus {
+  background-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+.apple-field-select {
+  cursor: pointer;
+}
+
+.apple-option-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.apple-option-row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid #dedee2;
+  border-radius: 8px;
+  background: #f7f7f8;
+  color: #29292f;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.apple-option-row:hover, .apple-option-row.is-selected { background: #ededee; border-color: #bdbdc3; }
+.apple-option-row:active { transform: scale(0.99); }
+.apple-option-number { color: #77777f; font-size: 0.76rem; font-weight: 700; text-align: center; }
+.apple-option-check { color: #4c4c54; font-weight: 700; }
+.apple-option-row + .apple-field-input { margin-top: 0.25rem; }
+
+.apple-field-error {
+  border-color: #6a6a72 !important;
+}
+
+.apple-field-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.apple-field-error-text {
+  font-size: 0.72rem;
+  color: #5e5e66;
+  margin-top: 0.1rem;
+}
+
+/* Actions Footer */
+.apple-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.4rem;
+}
+
+.apple-form-btn-secondary {
+  padding: 0.55rem 0.95rem;
+  border-radius: 9999px;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.apple-form-btn-secondary:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.apple-form-btn-secondary:active {
+  transform: scale(0.96);
+}
+
+.apple-form-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  background-color: #35353b;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 120ms ease;
+}
+
+.apple-form-btn-primary:hover {
+  background-color: #202026;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.apple-form-btn-primary:active {
+  transform: scale(0.96);
+  transition: transform 80ms ease-out;
+}
+
+.apple-form-close-btn:focus-visible,
+.apple-field-input:focus-visible,
+.apple-form-btn-secondary:focus-visible,
+.apple-form-btn-primary:focus-visible {
+  outline: 3px solid rgba(70, 70, 78, 0.3);
   outline-offset: 2px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-form-card { animation: none; }
+  .apple-form-close-btn, .apple-field-input, .apple-form-btn-secondary, .apple-form-btn-primary { transition: none; }
+  .apple-form-close-btn:active, .apple-form-btn-secondary:active, .apple-form-btn-primary:active, .apple-form-btn-primary:hover { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .apple-form-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .apple-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .apple-form-btn-primary,
+  .apple-form-btn-secondary {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+.apple-form-btn-secondary:disabled { cursor: not-allowed; opacity: 0.45; }

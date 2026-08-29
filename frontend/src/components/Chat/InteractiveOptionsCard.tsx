@@ -20,12 +20,12 @@ interface InteractiveOptionsCardProps {
 }
 
 export function InteractiveOptionsCard({
-  title = 'Selecciona una opción para continuar:',
+  title,
   description,
   options,
   onSelectOption,
 }: InteractiveOptionsCardProps) {
-  const normalizedOptions: OptionItem[] = options.map((opt, idx) => {
+  const normalizedOptions: OptionItem[] = options.slice(0, 3).map((opt, idx) => {
     if (typeof opt === 'string') {
       const parts = opt.split(' - ');
       return {
@@ -37,6 +37,8 @@ export function InteractiveOptionsCard({
     return opt;
   });
 
+  if (normalizedOptions.length === 0) return null;
+
   const handleClick = (e: React.MouseEvent, opt: OptionItem) => {
     e.preventDefault();
     e.stopPropagation();
@@ -45,35 +47,34 @@ export function InteractiveOptionsCard({
   };
 
   return (
-    <div className="interactive-options-card">
-      <div className="options-card-header">
-        <div className="options-card-badge">Opción guiada</div>
-        <h4 className="options-card-title">{title}</h4>
-        {description && <p className="options-card-desc">{description}</p>}
-      </div>
+    <section className="interactive-options-card" aria-label={title || 'Opciones de respuesta'}>
+      {title && (
+        <div className="options-card-header">
+          <h3 className="options-card-title">{title}</h3>
+          {description && <span className="options-card-desc">{description}</span>}
+        </div>
+      )}
 
-      <div className="options-grid">
-        {normalizedOptions.map((opt) => (
+      <div className="options-list">
+        {normalizedOptions.map((opt, index) => (
           <button
             key={opt.id}
             type="button"
-            className="option-chip-btn"
+            className="option-row-btn"
             onClick={(e) => handleClick(e, opt)}
+            title={opt.description || opt.title}
           >
-            <div className="option-chip-indicator">
-              <span className="option-radio-dot" />
-            </div>
-            <div className="option-chip-text">
-              <span className="option-chip-title">{opt.title}</span>
-              {opt.description && (
-                <span className="option-chip-sub">{opt.description}</span>
-              )}
-            </div>
-            <span className="option-arrow">→</span>
+            <span className="option-row-number" aria-hidden="true">{index + 1}</span>
+            <span className="option-row-copy">
+              <span className="option-row-label">{opt.title}</span>
+              {opt.description && <span className="option-row-description">{opt.description}</span>}
+            </span>
+            <span className="option-row-enter" aria-hidden="true">↵</span>
           </button>
         ))}
       </div>
-    </div>
+      <span className="options-card-hint">Selecciona una opción para continuar</span>
+    </section>
   );
 }
 

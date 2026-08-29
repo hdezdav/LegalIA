@@ -148,9 +148,12 @@ def test_production_rejects_a_default_jwt_secret() -> None:
         )
 
 
-def test_production_requires_a_key_for_the_selected_embedding_provider() -> None:
+def test_production_requires_a_key_for_the_selected_embedding_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Selecting a remote provider without its key must fail at boot, not at the
     first user question."""
+    monkeypatch.delenv("ALIBABA_API_KEY", raising=False)
     with pytest.raises(ValidationError, match="ALIBABA_API_KEY"):
         _settings(
             ENVIRONMENT="production",
@@ -158,6 +161,7 @@ def test_production_requires_a_key_for_the_selected_embedding_provider() -> None
             ANTHROPIC_API_KEY="key",
             EMBEDDING_PROVIDER="alibaba",
             RERANKER_PROVIDER="mock",
+            ALIBABA_API_KEY=None,
         )
 
 

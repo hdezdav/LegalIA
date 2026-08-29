@@ -44,5 +44,7 @@ lxml==5.3.0
 tiktoken==0.8.0
 numpy==1.26.4
 
-# --- Config ---
+# --- Config & Search ---
 python-dotenv==1.0.1
+ddgs>=9.16.0
+primp>=2.0.0

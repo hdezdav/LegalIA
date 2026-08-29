@@ -66,12 +66,18 @@ export function ConversationsView({
 
   const getConversationSection = (timestamp: number) => {
     const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    if (date.toDateString() === today.toDateString()) return 'Hoy';
-    if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
-    return 'Anteriores';
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfYesterday = startOfToday - 86400000;
+    const startOf7Days = startOfToday - 7 * 86400000;
+    const startOf30Days = startOfToday - 30 * 86400000;
+
+    const time = date.getTime();
+    if (time >= startOfToday) return 'Hoy';
+    if (time >= startOfYesterday) return 'Ayer';
+    if (time >= startOf7Days) return 'Últimos 7 días';
+    if (time >= startOf30Days) return 'Últimos 30 días';
+    return 'Meses anteriores';
   };
 
   const handleDelete = (e: React.MouseEvent, id: string) => {

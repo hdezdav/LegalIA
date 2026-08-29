@@ -47,7 +47,7 @@ export function LegalDocumentCard({ title, type = 'documento', content }: LegalD
     <div className="legal-doc-card">
       <div className="legal-doc-header">
         <div className="legal-doc-icon-wrap">
-          <FileTextIcon size={22} className="legal-doc-icon" />
+          <FileTextIcon size={20} className="legal-doc-icon" />
         </div>
         <div className="legal-doc-meta">
           <div className="legal-doc-title-row">
@@ -55,21 +55,20 @@ export function LegalDocumentCard({ title, type = 'documento', content }: LegalD
             <span className={`legal-doc-type-badge ${badgeInfo.color}`}>{badgeInfo.label}</span>
           </div>
           <p className="legal-doc-subtitle">
-            Listo para descargar y diligenciar · {wordCount} palabras · Estándar legal colombiano
+            {wordCount} palabras · Estándar legal colombiano
           </p>
         </div>
       </div>
 
-      {/* Action Buttons Toolbar */}
       <div className="legal-doc-actions">
         <button
           type="button"
           className="legal-doc-btn legal-doc-btn-word"
           onClick={() => exportToWord(title, content)}
-          title="Descargar en formato Microsoft Word (.doc / .docx)"
+          title="Descargar en formato Microsoft Word (.docx)"
         >
           <DownloadIcon size={14} />
-          <span>Descargar Word (.docx)</span>
+          <span>Descargar Word</span>
         </button>
 
         <button
@@ -105,16 +104,17 @@ export function LegalDocumentCard({ title, type = 'documento', content }: LegalD
         <button
           type="button"
           className="legal-doc-btn legal-doc-btn-toggle"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setExpanded((current) => !current)}
+          aria-expanded={expanded}
           title={expanded ? 'Colapsar vista previa' : 'Ver documento completo'}
         >
-          <span>{expanded ? '▲ Ocultar vista previa' : '▼ Ver vista previa'}</span>
+          <span aria-hidden="true">{expanded ? '⌃' : '⌄'}</span>
+          <span>{expanded ? 'Ocultar vista previa' : 'Ver vista previa'}</span>
         </button>
       </div>
 
-      {/* Expandable Document Preview */}
       {expanded && (
-        <div className="legal-doc-preview-body">
+        <div className="legal-doc-preview-body" role="region" aria-label="Vista previa del documento">
           <div className="legal-doc-preview-content">
             <pre className="legal-doc-pre">{content}</pre>
           </div>

@@ -26,9 +26,6 @@ export function DocumentPreviewModal({ file, onClose }: DocumentPreviewModalProp
                 <span>•</span>
                 <span>{file.analysis.jurisdiction}</span>
                 <span>•</span>
-                <span className="token-savings-badge">
-                  ⚡ MarkItDown: -{file.stats.token_reduction_pct}% tokens
-                </span>
               </div>
             </div>
           </div>
@@ -60,9 +57,9 @@ export function DocumentPreviewModal({ file, onClose }: DocumentPreviewModalProp
               </div>
             )}
             <div className="doc-meta-card">
-              <div className="meta-card-label">Estadísticas de Conversión</div>
+              <div className="meta-card-label">Extensión del documento</div>
               <div className="meta-card-value">
-                {file.stats.word_count} palabras · ~{file.stats.markdown_tokens_est} tokens procesados
+                {file.stats.word_count} palabras
               </div>
             </div>
           </div>

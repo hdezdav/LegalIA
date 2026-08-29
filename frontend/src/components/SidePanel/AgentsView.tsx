@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Agent, LegalSpecializationId, AgentToolsConfig } from '../../types';
 import { SPECIALIZATIONS } from '../../constants';
 import { generateUUID } from '../../utils';
+import { AgentSymbol, LEGAL_SYMBOLS } from '../AgentSymbol';
 import {
   PlusIcon,
   ChevronDownIcon,
@@ -10,6 +11,9 @@ import {
   BotIcon,
   SparklesIcon,
   CopyIcon,
+  ShieldIcon,
+  FileTextIcon,
+  SlidersIcon,
 } from '../Icons';
 
 interface AgentsViewProps {
@@ -19,15 +23,6 @@ interface AgentsViewProps {
   onDelete: (id: string) => void;
   onSelect: (id: string | null) => void;
 }
-
-const AVAILABLE_MODELS = [
-  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5 (Recomendado Jurídico)' },
-  { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.6 (Equilibrado)' },
-  { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5 (Rápido / Consultas breves)' },
-  { id: 'gpt-4o', name: 'GPT-4o (OpenAI)' },
-];
-
-const EMOJI_PRESETS = ['⚖️', '🏛️', '💼', '📝', '🔍', '📜', '🛡️', '💡', '👔', '🎓', '🤖', '📖'];
 
 export function AgentsView({
   agents,
@@ -39,17 +34,15 @@ export function AgentsView({
   const [selectedAgentId, setSelectedAgentId] = useState<string>('new');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [model, setModel] = useState('claude-sonnet-5');
   const [category, setCategory] = useState<LegalSpecializationId>('general');
   const [instructions, setInstructions] = useState('');
-  const [icon, setIcon] = useState('⚖️');
+  const [icon, setIcon] = useState('scale');
   const [starters, setStarters] = useState<string[]>([]);
   const [newStarter, setNewStarter] = useState('');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showSymbolPicker, setShowSymbolPicker] = useState(false);
   const [tools, setTools] = useState<AgentToolsConfig>({
     rag_corpus: true,
     docx_export: true,
-    labor_calculator: false,
     interactive_forms: true,
   });
 
@@ -58,10 +51,9 @@ export function AgentsView({
     if (selectedAgentId === 'new') {
       setName('');
       setDescription('');
-      setModel('claude-sonnet-5');
       setCategory('general');
       setInstructions('');
-      setIcon('⚖️');
+      setIcon('scale');
       setStarters([
         '¿Cuáles son los requisitos de procedibilidad?',
         'Redactar documento legal con normativa aplicable',
@@ -69,7 +61,6 @@ export function AgentsView({
       setTools({
         rag_corpus: true,
         docx_export: true,
-        labor_calculator: false,
         interactive_forms: true,
       });
     } else {
@@ -77,19 +68,16 @@ export function AgentsView({
       if (existing) {
         setName(existing.name);
         setDescription(existing.description || '');
-        setModel(existing.model || 'claude-sonnet-5');
         setCategory(existing.specialization || 'general');
         setInstructions(existing.instructions || '');
-        setIcon(existing.icon || '⚖️');
+        setIcon(existing.icon || 'scale');
         setStarters(existing.conversation_starters || []);
-        setTools(
-          existing.tools || {
-            rag_corpus: true,
-            docx_export: true,
-            labor_calculator: false,
-            interactive_forms: true,
-          }
-        );
+        const existingTools = existing.tools || {};
+        setTools({
+          rag_corpus: existingTools.rag_corpus ?? true,
+          docx_export: existingTools.docx_export ?? true,
+          interactive_forms: existingTools.interactive_forms ?? true,
+        });
       }
     }
   }, [selectedAgentId, agents]);
@@ -117,7 +105,6 @@ export function AgentsView({
       name: name.trim(),
       description: description.trim(),
       icon,
-      model,
       instructions: instructions.trim(),
       specialization: category,
       conversation_starters: starters.filter((s) => s.trim().length > 0),
@@ -139,7 +126,6 @@ export function AgentsView({
       name: `${name} (Copia)`,
       description,
       icon,
-      model,
       instructions,
       specialization: category,
       conversation_starters: [...starters],
@@ -166,123 +152,138 @@ export function AgentsView({
     <div className="sidepanel-content sidepanel-agent-builder">
       {/* Top Agent Selector Dropdown (LibreChat Style) */}
       <div className="agent-select-wrapper">
+        <div className="agent-select-icon-left">
+          {selectedAgentId === 'new' ? (
+            <PlusIcon size={15} />
+          ) : (
+            <AgentSymbol icon={icon} size={15} />
+          )}
+        </div>
         <select
           className="agent-select-dropdown"
           value={selectedAgentId}
           onChange={(e) => setSelectedAgentId(e.target.value)}
         >
-          <option value="new">+ Crear nuevo agente personalizado</option>
-          <optgroup label="Agentes Disponibles">
+          <option value="new">+ Crear nuevo agente jurídico</option>
+          <optgroup label="Agentes Jurídicos Disponibles">
             {agents.map((agent) => (
               <option key={agent.id} value={agent.id}>
-                {agent.icon || '🤖'} {agent.name} {agent.id === activeAgentId ? '✓ (Activo)' : ''}
+                {agent.name} {agent.id === activeAgentId ? '✓ (Activo)' : ''}
               </option>
             ))}
           </optgroup>
         </select>
-        <ChevronDownIcon size={16} className="select-chevron" />
+        <ChevronDownIcon size={14} className="select-chevron" />
       </div>
 
       {/* Form Fields Scroll Area */}
       <form onSubmit={handleSave} className="agent-form-scroll">
-        {/* Avatar + Name + Description Header */}
+        {/* Symbol + Name + Description Header */}
         <div className="agent-identity-row">
-          <div className="agent-avatar-picker-wrapper">
+          <div className="agent-symbol-picker-wrapper">
             <button
               type="button"
-              className="agent-avatar-picker"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              title="Cambiar icono del agente"
+              className="agent-symbol-picker-btn"
+              onClick={() => setShowSymbolPicker(!showSymbolPicker)}
+              title="Seleccionar símbolo jurídico"
             >
-              <span className="avatar-preview-text">{icon}</span>
-              <div className="avatar-plus-badge">
-                <PlusIcon size={10} />
+              <div className="agent-symbol-box">
+                <AgentSymbol icon={icon} size={22} />
               </div>
+              <span className="agent-symbol-change-label">Cambiar</span>
             </button>
 
-            {showEmojiPicker && (
-              <div className="emoji-picker-popover">
-                <div className="emoji-picker-grid">
-                  {EMOJI_PRESETS.map((em) => (
-                    <button
-                      key={em}
-                      type="button"
-                      className="emoji-preset-btn"
-                      onClick={() => {
-                        setIcon(em);
-                        setShowEmojiPicker(false);
-                      }}
-                    >
-                      {em}
-                    </button>
-                  ))}
+            {showSymbolPicker && (
+              <div className="symbol-picker-popover">
+                <div className="symbol-picker-header">
+                  <span>Símbolos Jurídicos</span>
+                  <button
+                    type="button"
+                    className="symbol-close-btn"
+                    onClick={() => setShowSymbolPicker(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="symbol-picker-grid">
+                  {LEGAL_SYMBOLS.map((sym) => {
+                    const isSelected = icon === sym.id;
+                    return (
+                      <button
+                        key={sym.id}
+                        type="button"
+                        className={`symbol-preset-btn ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          setIcon(sym.id);
+                          setShowSymbolPicker(false);
+                        }}
+                        title={sym.name}
+                      >
+                        <AgentSymbol icon={sym.id} size={18} color={sym.color} />
+                        <span className="symbol-preset-name">{sym.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
 
           <div className="agent-identity-inputs">
-            <input
-              type="text"
-              placeholder="Nombre del Agente (ej. Especialista en Tutelas)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="agent-text-input bold"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Descripción breve de su función"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="agent-text-input"
-            />
+            <div className="agent-input-group">
+              <label className="agent-field-label">NOMBRE DEL AGENTE *</label>
+              <input
+                type="text"
+                placeholder="Ej. Especialista en Tutelas y Salud"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="agent-text-input agent-name-input"
+                required
+              />
+            </div>
+            <div className="agent-input-group">
+              <label className="agent-field-label">DESCRIPCIÓN BREVE</label>
+              <input
+                type="text"
+                placeholder="Ej. Análisis de procedibilidad y subsidiariedad"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="agent-text-input"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Two-Column Model & Category */}
-        <div className="agent-two-col">
-          <div className="agent-col-field">
-            <label className="agent-field-label">MODELO LLM *</label>
-            <div className="select-box">
-              <select value={model} onChange={(e) => setModel(e.target.value)}>
-                {AVAILABLE_MODELS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon size={14} />
-            </div>
-          </div>
-
-          <div className="agent-col-field">
-            <label className="agent-field-label">ESPECIALIDAD JURÍDICA *</label>
-            <div className="select-box">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as LegalSpecializationId)}
-              >
-                {SPECIALIZATIONS.map((spec) => (
-                  <option key={spec.id} value={spec.id}>
-                    {spec.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon size={14} />
-            </div>
+        {/* Single Full-Width Rama / Especialidad Jurídica */}
+        <div className="agent-input-group">
+          <label className="agent-field-label">ESPECIALIDAD JURÍDICA *</label>
+          <div className="select-box">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as LegalSpecializationId)}
+            >
+              {SPECIALIZATIONS.map((spec) => (
+                <option key={spec.id} value={spec.id}>
+                  {spec.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDownIcon size={14} />
           </div>
         </div>
 
         {/* INSTRUCCIONES DEL SISTEMA */}
         <div className="agent-section">
           <div className="agent-section-header">
-            <label className="agent-field-label">INSTRUCCIONES DEL SISTEMA (PROMPT)</label>
+            <label className="agent-field-label">
+              <FileTextIcon size={13} />
+              <span>INSTRUCCIONES DEL SISTEMA</span>
+            </label>
           </div>
           <textarea
             className="agent-textarea"
             rows={5}
-            placeholder="Instrucciones para el agente (ej. Actúa como magistrado auxiliar experto en casación laboral... Cita jurisprudencia de la Sala Laboral y calcula indemnizaciones según Art. 64 CST...)"
+            placeholder="Define el rol del agente (ej. Actúa como magistrado auxiliar experto en casación laboral... Cita jurisprudencia de la Sala Laboral y liquida indemnizaciones según Art. 64 CST...)"
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
           />
@@ -291,7 +292,10 @@ export function AgentsView({
         {/* CONVERSATION STARTERS (LibreChat Style) */}
         <div className="agent-section">
           <div className="agent-section-header">
-            <label className="agent-field-label">PREGUNTAS SUGERIDAS (CONVERSATION STARTERS)</label>
+            <label className="agent-field-label">
+              <SparklesIcon size={13} />
+              <span>PREGUNTAS SUGERIDAS</span>
+            </label>
           </div>
           <div className="starters-list">
             {starters.map((starter, idx) => (
@@ -311,7 +315,7 @@ export function AgentsView({
           <div className="starter-add-row">
             <input
               type="text"
-              placeholder="Ej. Redactar derecho de petición por salud..."
+              placeholder="Ej. Redactar tutela por salud..."
               value={newStarter}
               onChange={(e) => setNewStarter(e.target.value)}
               onKeyDown={(e) => {
@@ -333,10 +337,13 @@ export function AgentsView({
           </div>
         </div>
 
-        {/* HERRAMIENTAS & CAPACIDADES (TOOLS & SKILLS) */}
+        {/* HERRAMIENTAS & CAPACIDADES */}
         <div className="agent-section">
           <div className="agent-section-header">
-            <label className="agent-field-label">CAPACIDADES Y HERRAMIENTAS ACTIVAS</label>
+            <label className="agent-field-label">
+              <SlidersIcon size={13} />
+              <span>CAPACIDADES ACTIVAS</span>
+            </label>
           </div>
           <div className="tools-toggle-grid">
             <label className="tool-checkbox-item">
@@ -346,8 +353,12 @@ export function AgentsView({
                 onChange={() => handleToggleTool('rag_corpus')}
               />
               <div className="tool-checkbox-info">
-                <span className="tool-name">🔍 Búsqueda en Corpus Oficial (RAG)</span>
-                <span className="tool-desc">Recupera leyes, decretos y jurisprudencia colombiana oficial.</span>
+                <span className="tool-name">
+                  <ShieldIcon size={14} style={{ color: '#2563eb' }} /> Búsqueda Corpus Jurídico (RAG)
+                </span>
+                <span className="tool-desc">
+                  Recupera citas normativas oficiales y jurisprudencia colombiana.
+                </span>
               </div>
             </label>
 
@@ -358,20 +369,12 @@ export function AgentsView({
                 onChange={() => handleToggleTool('docx_export')}
               />
               <div className="tool-checkbox-info">
-                <span className="tool-name">📄 Exportador Word (.docx) y PDF</span>
-                <span className="tool-desc">Genera minutas descargables en Microsoft Word con formato legal.</span>
-              </div>
-            </label>
-
-            <label className="tool-checkbox-item">
-              <input
-                type="checkbox"
-                checked={tools.labor_calculator ?? false}
-                onChange={() => handleToggleTool('labor_calculator')}
-              />
-              <div className="tool-checkbox-info">
-                <span className="tool-name">⚖️ Calculadora Laboral y Prestacional</span>
-                <span className="tool-desc">Calcula cesantías, primas, vacaciones e indemnizaciones Art. 64 CST.</span>
+                <span className="tool-name">
+                  <FileTextIcon size={14} style={{ color: '#10b981' }} /> Exportador Word (.docx) y PDF
+                </span>
+                <span className="tool-desc">
+                  Genera minutas estructuradas listas para descargar.
+                </span>
               </div>
             </label>
 
@@ -382,29 +385,32 @@ export function AgentsView({
                 onChange={() => handleToggleTool('interactive_forms')}
               />
               <div className="tool-checkbox-info">
-                <span className="tool-name">⚡ Tarjetas de Selección y Formularios Intake</span>
-                <span className="tool-desc">Despliega preguntas con opciones y cuestionarios en el chat.</span>
+                <span className="tool-name">
+                  <SparklesIcon size={14} style={{ color: '#8b5cf6' }} /> Tarjetas y Formularios Intake
+                </span>
+                <span className="tool-desc">
+                  Despliega opciones interactivas para recolección de datos.
+                </span>
               </div>
             </label>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Apple Design Action Buttons Footer */}
         <div className="agent-actions-footer">
           {selectedAgentId !== 'new' && (
-            <button
-              type="button"
-              className={`btn-toggle-active ${isActive ? 'active' : ''}`}
-              onClick={() => onSelect(isActive ? null : selectedAgentId)}
-            >
-              {isActive ? <CheckIcon size={14} /> : <BotIcon size={14} />}
-              <span>{isActive ? 'Agente Activo' : 'Activar Agente'}</span>
-            </button>
-          )}
+            <div className="agent-actions-secondary-row">
+              <button
+                type="button"
+                className={`btn-toggle-active ${isActive ? 'active' : ''}`}
+                onClick={() => onSelect(isActive ? null : selectedAgentId)}
+                title={isActive ? 'Desactivar agente' : 'Establecer como agente activo'}
+              >
+                {isActive ? <CheckIcon size={14} /> : <BotIcon size={14} />}
+                <span>{isActive ? 'Agente Activo' : 'Activar'}</span>
+              </button>
 
-          <div className="footer-right-buttons">
-            {selectedAgentId !== 'new' && (
-              <>
+              <div className="agent-actions-tools-group">
                 <button
                   type="button"
                   className="btn-secondary-agent"
@@ -420,15 +426,16 @@ export function AgentsView({
                   onClick={handleDelete}
                   title="Eliminar este agente"
                 >
-                  <TrashIcon size={15} />
+                  <TrashIcon size={14} />
                 </button>
-              </>
-            )}
-            <button type="submit" className="btn-primary-agent">
-              <SparklesIcon size={14} />
-              <span>{selectedAgentId === 'new' ? 'Crear Agente' : 'Guardar Cambios'}</span>
-            </button>
-          </div>
+              </div>
+            </div>
+          )}
+
+          <button type="submit" className="btn-primary-agent">
+            <SparklesIcon size={14} />
+            <span>{selectedAgentId === 'new' ? 'Crear Agente' : 'Guardar Cambios'}</span>
+          </button>
         </div>
       </form>
     </div>

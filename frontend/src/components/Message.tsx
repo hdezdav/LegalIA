@@ -8,8 +8,10 @@ import { getTranslations } from '../i18n';
 import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon, DownloadIcon, FileTextIcon } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
 import { LegalDocumentCard } from './Chat/LegalDocumentCard';
-import { ParsedQuestionOptions, parseOptionsMarkdown } from './Chat/InteractiveOptionsCard';
-import { InteractiveFormCard, parseFormMarkdown } from './Chat/InteractiveFormCard';
+import { InteractiveOptionsCard, parseOptionsMarkdown } from './Chat/InteractiveOptionsCard';
+import { parseFormMarkdown } from './Chat/InteractiveFormCard';
+import type { FormField } from './Chat/InteractiveFormCard';
+import { SourcesRail } from './Chat/SourcesRail';
 import './Message.css';
 
 const t = getTranslations('es');
@@ -19,10 +21,10 @@ interface MessageProps {
   isStreaming?: boolean;
   onRegenerate?: () => void;
   onSendMessage?: (text: string) => void;
-  onOptionsReady?: (question: ParsedQuestionOptions) => void;
+  onFormReady?: (messageId: string, form: { title: string; description?: string; fields: FormField[] }, contentKey: string) => void;
 }
 
-function CodeBlock({ inline, className, children, onSendMessage, onOptionsReady, messageId, isStreaming, ...props }: any) {
+function CodeBlock({ inline, className, children, onSendMessage, isStreaming, ...props }: any) {
   const [copied, setCopied] = useState(false);
   const match = /language-([\w-]+)/.exec(className || '');
   const language = match ? match[1].toLowerCase() : '';
@@ -33,12 +35,13 @@ function CodeBlock({ inline, className, children, onSendMessage, onOptionsReady,
     language.includes('opciones') ||
     language.includes('preguntas')
   );
+  const isFormBlock = !inline && (
+    language.includes('legal-form') ||
+    language.includes('form') ||
+    language.includes('formulario') ||
+    language.includes('intake')
+  );
   const parsedOptions = isOptionsBlock ? parseOptionsMarkdown(codeContent) : null;
-
-  useEffect(() => {
-    if (!isOptionsBlock || isStreaming || !parsedOptions?.options.length) return;
-    onOptionsReady?.(parsedOptions);
-  }, [isOptionsBlock, isStreaming, messageId, codeContent, onOptionsReady]);
 
   if (inline || !match) {
     return (
@@ -48,28 +51,21 @@ function CodeBlock({ inline, className, children, onSendMessage, onOptionsReady,
     );
   }
 
-  // 1. Detect interactive options / choice chips
+  // Interactive choices remain attached to the assistant response.
   if (isOptionsBlock) {
-    // The completed message publishes options to Chat, where they sit above the composer.
-    return null;
-  }
-
-  // 2. Detect interactive intake forms
-  if (
-    language.includes('legal-form') ||
-    language.includes('form') ||
-    language.includes('formulario') ||
-    language.includes('intake')
-  ) {
-    const parsed = parseFormMarkdown(codeContent);
+    if (isStreaming || !parsedOptions?.options.length) return null;
     return (
-      <InteractiveFormCard
-        title={parsed.title}
-        description={parsed.description}
-        fields={parsed.fields}
-        onSubmitForm={(prompt) => onSendMessage?.(prompt)}
+      <InteractiveOptionsCard
+        title={parsedOptions.title}
+        options={parsedOptions.options}
+        onSelectOption={(text) => onSendMessage?.(text)}
       />
     );
+  }
+
+  // Forms are published to Chat after the complete assistant message arrives.
+  if (isFormBlock) {
+    return null;
   }
 
   // 3. Detect legal document code blocks
@@ -129,7 +125,7 @@ function CodeBlock({ inline, className, children, onSendMessage, onOptionsReady,
   );
 }
 
-export function Message({ message, isStreaming = false, onRegenerate, onSendMessage, onOptionsReady }: MessageProps) {
+export function Message({ message, isStreaming = false, onRegenerate, onSendMessage, onFormReady }: MessageProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -142,6 +138,14 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
 
   const isUser = message.role === 'user';
   const isThinking = !isUser && isStreaming && !message.content.trim();
+
+  useEffect(() => {
+    if (isUser || isStreaming || !message.content.trim()) return;
+    const formMatch = message.content.match(/```(?:legal-form|formulario|intake|form)\s*\n([\s\S]*?)```/i);
+    if (!formMatch) return;
+    const parsed = parseFormMarkdown(formMatch[1]);
+    if (parsed.fields.length) onFormReady?.(message.id, parsed, formMatch[1].trim());
+  }, [isUser, isStreaming, message.id, message.content, onFormReady]);
 
   // Detect if full assistant message is a drafted legal document
   const isDraftedLegalDoc = useMemo(() => {
@@ -218,16 +222,29 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
                      <CodeBlock
                        {...props}
                        onSendMessage={onSendMessage}
-                       onOptionsReady={onOptionsReady}
-                       messageId={message.id}
                        isStreaming={isStreaming}
                      />
                    ),
+                   a: ({ href, children, ...props }) => {
+                     const isCitation = typeof children === 'string' && /^\[?\d+\]?$/.test(children.trim());
+                     return (
+                       <a
+                         href={href}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className={isCitation ? 'inline-citation-badge' : 'markdown-link'}
+                         {...props}
+                       >
+                         {children}
+                       </a>
+                     );
+                   },
                 }}
               >
                 {message.content}
               </ReactMarkdown>
               {isStreaming && <span className="librechat-cursor" />}
+              {!isStreaming && <SourcesRail markdown={message.content} metadataCitations={message.metadata?.citations} />}
             </>
           )}
         </div>

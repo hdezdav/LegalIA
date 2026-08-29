@@ -1,61 +1,65 @@
 :root {
   /* LibreChat RGB triplets for components using rgb(var(...)) */
   --surface-primary: 255, 255, 255;
-  --surface-primary-alt: 250, 250, 250;
+  --surface-primary-alt: 247, 247, 248;
   --surface-secondary: 247, 247, 248;
-  --surface-tertiary: 236, 236, 241;
-  --surface-hover: 240, 240, 242;
-  --surface-active: 229, 231, 235;
+  --surface-tertiary: 236, 236, 236;
+  --surface-hover: 227, 227, 227;
+  --surface-active: 205, 205, 205;
 
-  --text-primary-rgb: 23, 23, 23;
-  --text-secondary-rgb: 75, 85, 99;
-  --text-tertiary-rgb: 156, 163, 175;
+  --text-primary-rgb: 33, 33, 33;
+  --text-secondary-rgb: 89, 89, 89;
+  --text-tertiary-rgb: 153, 150, 150;
 
-  --border-light: 229, 231, 235;
-  --border-medium-rgb: 209, 213, 219;
-  --border-heavy: 156, 163, 175;
+  --border-light: 236, 236, 236;
+  --border-medium-rgb: 205, 205, 205;
+  --border-heavy: 153, 150, 150;
 
-  --accent-primary: 71, 85, 105;
-  --accent-hover: 51, 65, 85;
+  --accent-primary: 18, 110, 107;
+  --accent-hover: 10, 79, 83;
 
-  --link: 71, 85, 105;
-  --link-hover: 51, 65, 85;
+  --link: 37, 99, 235;
+  --link-hover: 29, 78, 216;
 
-  /* Direct Color Tokens for modern clean UI */
+  /* Direct Color Tokens - LibreChat Theme */
   --bg-app: #ffffff;
   --bg-sidebar: #f7f7f8;
   --bg-surface: #ffffff;
-  --bg-surface-hover: #f0f0f2;
-  --bg-surface-active: #e5e7eb;
+  --bg-surface-hover: #ececec;
+  --bg-surface-active: #e3e3e3;
 
-  --text-primary: #171717;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
-  --text-dim: #9ca3af;
+  --text-primary: #212121;
+  --text-secondary: #595959;
+  --text-muted: #898989;
+  --text-dim: #999696;
   --text-inverse: #ffffff;
 
-  --border-subtle: #f0f0f2;
-  --border-medium: #e5e7eb;
-  --border-focus: #64748b;
-  --action-primary: #334155;
-  --action-primary-hover: #1f2937;
-  --selected-background: #e5e7eb;
+  --border-subtle: #ececec;
+  --border-medium: #cdcdcd;
+  --border-focus: #595959;
+  --action-primary: #212121;
+  --action-primary-hover: #0d0d0d;
+  --selected-background: #e3e3e3;
 
+  --accent-green: #10a37f;
+  --accent-green-hover: #0d8a6a;
+  --badge-blue: #3b82f6;
+  --badge-purple: #ab68ff;
   --ruby-500: #ef4444;
   --emerald-500: #10b981;
   --amber-500: #f59e0b;
 
-  /* Rounded geometry */
+  /* LibreChat standard geometry */
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-xl: 20px;
   --radius-capsule: 26px;
   --radius-full: 9999px;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08);
 
   --transition-fast: 0.15s ease;
@@ -64,39 +68,44 @@
 
 :root[data-theme="dark"],
 .dark {
-  --surface-primary: 18, 18, 18;
-  --surface-primary-alt: 24, 24, 27;
-  --surface-secondary: 32, 32, 36;
-  --surface-tertiary: 42, 42, 46;
-  --surface-hover: 48, 48, 54;
-  --surface-active: 60, 60, 68;
+  --surface-primary: 13, 13, 13;
+  --surface-primary-alt: 23, 23, 23;
+  --surface-secondary: 33, 33, 33;
+  --surface-tertiary: 47, 47, 47;
+  --surface-hover: 57, 57, 57;
+  --surface-active: 66, 66, 66;
 
-  --border-light: 42, 42, 46;
-  --border-medium-rgb: 60, 60, 68;
-  --border-heavy: 80, 80, 90;
+  --border-light: 47, 47, 47;
+  --border-medium-rgb: 66, 66, 66;
+  --border-heavy: 89, 89, 89;
 
-  --bg-app: #121214;
-  --bg-sidebar: #18181b;
-  --bg-surface: #202024;
-  --bg-surface-hover: #2a2a30;
-  --bg-surface-active: #36363e;
+  --bg-app: #0d0d0d;
+  --bg-sidebar: #171717;
+  --bg-surface: #212121;
+  --bg-surface-hover: #2f2f2f;
+  --bg-surface-active: #393939;
 
-  --text-primary: #f3f4f6;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --text-inverse: #121214;
+  --text-primary: #ececec;
+  --text-secondary: #cdcdcd;
+  --text-muted: #999696;
+  --text-dim: #666666;
+  --text-inverse: #0d0d0d;
 
-  --border-subtle: #27272a;
-  --border-medium: #3f3f46;
-   --border-focus: #94a3b8;
-   --action-primary: #e5e7eb;
-   --action-primary-hover: #cbd5e1;
-   --selected-background: #36363e;
+  --border-subtle: #2f2f2f;
+  --border-medium: #424242;
+  --border-focus: #999696;
+  --action-primary: #ececec;
+  --action-primary-hover: #ffffff;
+  --selected-background: #2f2f2f;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
+  --accent-green: #10a37f;
+  --accent-green-hover: #1ab88f;
+  --badge-blue: #60a5fa;
+  --badge-purple: #c084fc;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -109,6 +118,30 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  *, *::before, *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: #cdcdcd;
+    --border-medium: #595959;
+  }
+}
+
 html, body, #root {
   width: 100%;
   min-height: 100%;
@@ -116,7 +149,7 @@ html, body, #root {
   padding: 0;
   background-color: var(--bg-app);
   color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -13,7 +13,7 @@ import { SPECIALIZATIONS, SPANISH_GREETINGS, EXAMPLE_PROMPTS } from '../constant
 import { exportConversationToMarkdown, downloadFile, generateUUID } from '../utils';
 import { buildContextBlock } from '../context';
 import { Message } from './Message';
-import { OptionItem, ParsedQuestionOptions } from './Chat/InteractiveOptionsCard';
+import { InteractiveFormCard, type FormField } from './Chat/InteractiveFormCard';
 import { SpecializationMenu } from './SpecializationMenu';
 import { ModelSelector } from './ModelSelector';
 import { FileRow } from './Chat/Files/FileRow';
@@ -25,21 +25,65 @@ import {
   SlidersIcon,
   MicIcon,
   FileTextIcon,
-  BotIcon,
   PaperclipIcon,
   SquareIcon,
   PlusIcon,
-  SparklesIcon,
+  GlobeIcon,
 } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
-import { LaborCalculatorModal } from './Tools/LaborCalculatorModal';
 import { RagSettingsModal, RagSettingsConfig } from './Tools/RagSettingsModal';
 import './Chat.css';
+
+const SPECIALIZATION_PROMPTS: Record<LegalSpecializationId, string[]> = {
+  general: [
+    'Jurisprudencia relevante',
+    'Análisis de riesgos',
+    'Estrategia procesal',
+  ],
+  constitucional: [
+    'Requisitos de tutela',
+    'Derechos fundamentales',
+    'Jurisprudencia CC',
+  ],
+  civil: [
+    'Revisión de contrato',
+    'Responsabilidad contractual',
+    'Términos procesales CGP',
+  ],
+  penal: [
+    'Tipicidad penal',
+    'Etapas procesales',
+    'Líneas de defensa',
+  ],
+  laboral: [
+    'Despido sin justa causa',
+    'Liquidación laboral',
+    'Fueros de estabilidad',
+  ],
+  administrativo: [
+    'Medio de control CPACA',
+    'Nulidad de acto',
+    'Términos de demanda',
+  ],
+  comercial: [
+    'Contratos mercantiles',
+    'Gobierno corporativo',
+    'Títulos valores',
+  ],
+  tributario: [
+    'Obligaciones DIAN',
+    'Sanciones tributarias',
+    'Recursos en vía gubernativa',
+  ],
+};
 
 interface ChatProps {
   conversation: Conversation;
   currentUser?: User | null;
   activeAgent?: Agent | null;
+  agents?: Agent[];
+  activeAgentId?: string | null;
+  onSelectAgent?: (id: string | null) => void;
   memories?: Memory[];
   memoriesEnabled?: boolean;
   injectedText?: string | null;
@@ -61,6 +105,9 @@ export function Chat({
   conversation,
   currentUser,
   activeAgent = null,
+  agents = [],
+  activeAgentId = null,
+  onSelectAgent,
   memories = [],
   memoriesEnabled = false,
   injectedText = null,
@@ -79,13 +126,9 @@ export function Chat({
 }: ChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pendingQuestion, setPendingQuestion] = useState<ParsedQuestionOptions | null>(null);
-  const [showAllOptions, setShowAllOptions] = useState(false);
-  const publishedOptionsRef = useRef(new Set<string>());
   const [attachedFiles, setAttachedFiles] = useState<ParsedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isLaborCalcOpen, setIsLaborCalcOpen] = useState(false);
   const [isRagSettingsOpen, setIsRagSettingsOpen] = useState(false);
   const [ragSettings, setRagSettings] = useState<RagSettingsConfig>({
     topK: 5,
@@ -94,6 +137,9 @@ export function Chat({
     searchMode: 'hibrido',
   });
   const [isRecording, setIsRecording] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [activeForm, setActiveForm] = useState<{ title: string; description?: string; fields: FormField[] } | null>(null);
+  const publishedFormsRef = useRef(new Set<string>());
   const recognitionRef = useRef<any>(null);
 
   const toggleVoiceDictation = () => {
@@ -173,12 +219,6 @@ export function Chat({
   }, [injectedText, onInjectedTextConsumed]);
 
   useEffect(() => {
-    setPendingQuestion(null);
-    setShowAllOptions(false);
-    publishedOptionsRef.current.clear();
-  }, [conversation.id]);
-
-  useEffect(() => {
     if (injectedFile) {
       setAttachedFiles((prev) => {
         if (prev.some((f) => f.id === injectedFile.id)) return prev;
@@ -194,6 +234,11 @@ export function Chat({
   }, [conversation.messages, loading]);
 
   useEffect(() => {
+    setActiveForm(null);
+    publishedFormsRef.current.clear();
+  }, [conversation.id]);
+
+  useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
@@ -201,6 +246,9 @@ export function Chat({
   }, [input]);
 
   const specialization = SPECIALIZATIONS.find((s) => s.id === conversation.specialization);
+  const conversationStarters = activeAgent?.conversation_starters?.length
+    ? activeAgent.conversation_starters.slice(0, 3)
+    : SPECIALIZATION_PROMPTS[conversation.specialization] || EXAMPLE_PROMPTS.slice(0, 3);
 
   const handleSpecializationChange = (id: LegalSpecializationId) => {
     onUpdateConversation({ ...conversation, specialization: id });
@@ -219,27 +267,11 @@ export function Chat({
     setLoading(false);
   };
 
-  const handleOptionsReady = (messageId: string, question: ParsedQuestionOptions) => {
-    if (loading || !question.options.length) return;
-    const uniqueOptions = question.options.filter((option, index, all) => {
-      const key = `${option.title.trim()}\u0000${option.description?.trim() || ''}`;
-      return all.findIndex((candidate) => `${candidate.title.trim()}\u0000${candidate.description?.trim() || ''}` === key) === index;
-    });
-    if (!uniqueOptions.length) return;
-    const contentKey = uniqueOptions
-      .map((option) => `${option.title.trim()}\u0000${option.description?.trim() || ''}`)
-      .join('\u0001');
-    const publicationKey = `${messageId}\u0002${contentKey}`;
-    if (publishedOptionsRef.current.has(publicationKey)) return;
-    publishedOptionsRef.current.add(publicationKey);
-     setPendingQuestion({ title: question.title, options: uniqueOptions });
-  };
-
-  const handleSelectPendingOption = (option: OptionItem) => {
-    setPendingQuestion(null);
-    setShowAllOptions(false);
-    const fullText = option.description ? `${option.title}: ${option.description}` : option.title;
-    handleSendCustomMessage(fullText);
+  const handleFormReady = (messageId: string, form: { title: string; description?: string; fields: FormField[] }, contentKey: string) => {
+    const publicationKey = `${messageId}\u0000${contentKey}`;
+    if (publishedFormsRef.current.has(publicationKey)) return;
+    publishedFormsRef.current.add(publicationKey);
+    setActiveForm(form);
   };
 
   // Document Upload & MarkItDown Parsing Handler
@@ -257,7 +289,7 @@ export function Chat({
         setAttachedFiles((prev) => [...prev, parsed]);
       }
     } catch (err: any) {
-      setUploadError(err.message || 'Error al procesar el archivo con MarkItDown');
+        setUploadError(err.message || 'No se pudo procesar el archivo. Intenta de nuevo.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -293,7 +325,7 @@ export function Chat({
         setAttachedFiles((prev) => [...prev, parsed]);
       }
     } catch (err: any) {
-      setUploadError(err.message || 'Error al procesar el archivo con MarkItDown');
+        setUploadError(err.message || 'No se pudo procesar el archivo. Intenta de nuevo.');
     } finally {
       setIsUploading(false);
     }
@@ -325,7 +357,7 @@ export function Chat({
     if (e) e.preventDefault();
     const trimmed = input.trim();
     if ((!trimmed && attachedFiles.length === 0) || loading || isUploading) return;
-    setPendingQuestion(null);
+    setActiveForm(null);
 
     let displayContent = trimmed;
     let payloadContent = trimmed;
@@ -393,11 +425,17 @@ export function Chat({
         specialization: conversation.specialization,
       });
 
+      const webSearchDirective = webSearchEnabled
+        ? '[MODO: BÚSQUEDA WEB EN VIVO Y FUENTES ABIERTAS ACTIVADA]\n\n'
+        : '';
+
+      const fullUserContent = `${webSearchDirective}${payloadContent}`;
+
       const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [
         ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
         {
           role: 'user',
-          content: contextBlock ? `${contextBlock}\n\n${payloadContent}` : payloadContent,
+          content: contextBlock ? `${contextBlock}\n\n${fullUserContent}` : fullUserContent,
         },
       ];
 
@@ -445,7 +483,7 @@ export function Chat({
 
   const handleSendCustomMessage = (customText: string) => {
     if (!customText || !customText.trim()) return;
-    setPendingQuestion(null);
+    setActiveForm(null);
 
     // 1. Abort existing stream if any is active
     if (abortControllerRef.current) {
@@ -503,11 +541,17 @@ export function Chat({
       specialization: conversation.specialization,
     });
 
+    const webSearchDirective = webSearchEnabled
+      ? '[MODO: BÚSQUEDA WEB EN VIVO Y FUENTES ABIERTAS ACTIVADA]\n\n'
+      : '';
+
+    const fullUserContent = `${webSearchDirective}${trimmedInput}`;
+
     const apiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [
       ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
       {
         role: 'user',
-        content: contextBlock ? `${contextBlock}\n\n${trimmedInput}` : trimmedInput,
+        content: contextBlock ? `${contextBlock}\n\n${fullUserContent}` : fullUserContent,
       },
     ];
 
@@ -551,7 +595,7 @@ export function Chat({
 
   const handleRegenerate = async () => {
     if (loading || conversation.messages.length < 2) return;
-    setPendingQuestion(null);
+    setActiveForm(null);
     const lastUserIdx = [...conversation.messages].reverse().findIndex((m) => m.role === 'user');
     if (lastUserIdx === -1) return;
     const actualIdx = conversation.messages.length - 1 - lastUserIdx;
@@ -645,39 +689,6 @@ export function Chat({
 
   const isEmpty = conversation.messages.length === 0;
 
-  const renderQuestionRail = () => pendingQuestion && pendingQuestion.options.length > 0 && !loading ? (
-    <div
-      className="question-rail"
-      aria-live="polite"
-      aria-label={pendingQuestion.title || 'Selecciona una opción para continuar:'}
-    >
-      <span className="question-rail-label">
-        {pendingQuestion.title || 'Selecciona una opción para continuar:'}
-      </span>
-       <div className="question-rail-options">
-         {pendingQuestion.options.slice(0, showAllOptions ? undefined : 4).map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className="question-rail-option"
-            onClick={() => handleSelectPendingOption(option)}
-          >
-            {option.description ? `${option.title}: ${option.description}` : option.title}
-          </button>
-         ))}
-         {pendingQuestion.options.length > 4 && !showAllOptions && (
-           <button
-             type="button"
-             className="question-rail-more"
-             onClick={() => setShowAllOptions(true)}
-           >
-             Ver más opciones
-           </button>
-         )}
-      </div>
-    </div>
-  ) : null;
-
   return (
     <div
       className="chat-main"
@@ -702,18 +713,22 @@ export function Chat({
             <PaperclipIcon size={24} />
           </div>
           <div className="drag-overlay-title">Suelta tus documentos jurídicos aquí</div>
-          <div className="drag-overlay-subtitle">Conversión automática con MarkItDown (-75% tokens)</div>
+          <div className="drag-overlay-subtitle">El documento se preparará para tu consulta</div>
         </div>
       )}
 
       {/* Top Bar with ModelSelector & Specialization */}
       <header className="chat-topbar">
         <div className="topbar-left">
-          {sidebarCollapsed && (
-            <button className="topbar-icon-btn" onClick={onOpenSidebar} title="Expandir panel lateral">
-              <MenuIcon size={18} />
-            </button>
-          )}
+          <button
+            type="button"
+            className="topbar-icon-btn topbar-hamburger-btn"
+            onClick={onOpenSidebar}
+            title={sidebarCollapsed ? 'Expandir panel lateral' : 'Ocultar panel lateral'}
+            aria-label="Alternar menú lateral"
+          >
+            <MenuIcon size={18} />
+          </button>
 
           {/* Model Selector (Claude / GPT / Gemini / Grok) */}
           {onSelectModel && (
@@ -726,24 +741,11 @@ export function Chat({
           <SpecializationMenu
             value={conversation.specialization}
             onChange={handleSpecializationChange}
+            agents={agents}
+            activeAgentId={activeAgent ? activeAgent.id : activeAgentId}
+            onSelectAgent={onSelectAgent}
+            onOpenAgentCreator={onOpenAgents}
           />
-
-          <button
-            type="button"
-            className="topbar-chip-btn"
-            onClick={() => setIsLaborCalcOpen(true)}
-            title="Calculadora de Liquidación Laboral (CST)"
-          >
-            <SparklesIcon size={13} />
-            <span>Calculadora CST</span>
-          </button>
-
-          {activeAgent && onOpenAgents && (
-            <button className="topbar-chip-btn" onClick={onOpenAgents} title="Agente activo">
-              <BotIcon size={14} />
-              <span>{activeAgent.name}</span>
-            </button>
-          )}
         </div>
         <div className="topbar-right">
           <button
@@ -788,21 +790,6 @@ export function Chat({
 
             {/* Centered Composer Capsule */}
              <div className="centered-composer-wrapper">
-               <div className="welcome-prompt-grid">
-                 {(activeAgent?.conversation_starters && activeAgent.conversation_starters.length > 0
-                   ? activeAgent.conversation_starters.slice(0, 3)
-                   : EXAMPLE_PROMPTS.slice(0, 3)
-                 ).map((prompt: string) => (
-                   <button
-                     key={prompt}
-                     type="button"
-                     className="welcome-prompt-pill"
-                     onClick={() => handleSendCustomMessage(prompt)}
-                   >
-                     <span>{prompt}</span>
-                   </button>
-                 ))}
-               </div>
                <form onSubmit={handleSubmit} className="composer-capsule">
                 {/* Attached File Chips (LibreChat Style) */}
                 <FileRow
@@ -815,7 +802,7 @@ export function Chat({
                 {isUploading && (
                   <div className="uploading-banner">
                     <span className="mini-spinner" />
-                    <span>Procesando con MarkItDown y optimizando tokens...</span>
+                    <span>Preparando documento…</span>
                   </div>
                 )}
                 {uploadError && (
@@ -839,6 +826,15 @@ export function Chat({
                       onSelectUpload={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     />
+                    <button
+                      type="button"
+                      className={`librechat-badge-btn ${webSearchEnabled ? 'active-web' : ''}`}
+                      onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                      title={webSearchEnabled ? 'Búsqueda web en vivo activada' : 'Buscar en Web en vivo'}
+                    >
+                      <GlobeIcon size={14} />
+                      <span>{webSearchEnabled ? 'Web Activa' : 'Buscar en Web'}</span>
+                    </button>
                     {onOpenPrompts && (
                       <button type="button" className="capsule-icon-btn" onClick={onOpenPrompts} title="Plantillas de prompts">
                         <FileTextIcon size={17} />
@@ -883,9 +879,21 @@ export function Chat({
                       </button>
                     )}
                   </div>
-                </div>
-              </form>
-            </div>
+                 </div>
+               </form>
+               <div className="welcome-prompt-grid" aria-label="Sugerencias de consulta">
+                 {conversationStarters.map((prompt: string) => (
+                   <button
+                     key={prompt}
+                     type="button"
+                     className="welcome-prompt-pill"
+                     onClick={() => handleSendCustomMessage(prompt)}
+                   >
+                     <span>{prompt}</span>
+                   </button>
+                 ))}
+               </div>
+             </div>
 
           </div>
         ) : (
@@ -896,18 +904,15 @@ export function Chat({
                   <div className="message-attached-file-badge">
                     <FileTextIcon size={14} />
                     <span>{message.attachedFiles[0].filename}</span>
-                    <span className="badge-tag">
-                      MarkItDown (-{message.attachedFiles[0].stats.token_reduction_pct}% tokens)
-                    </span>
                   </div>
                 )}
                 <Message
                   message={message}
                   isStreaming={loading && idx === conversation.messages.length - 1 && message.role === 'assistant'}
                   onRegenerate={idx === conversation.messages.length - 1 && message.role === 'assistant' ? handleRegenerate : undefined}
-                   onSendMessage={handleSendCustomMessage}
-                    onOptionsReady={(question) => handleOptionsReady(message.id, question)}
-                 />
+                  onSendMessage={handleSendCustomMessage}
+                  onFormReady={handleFormReady}
+                />
               </div>
             ))}
 
@@ -919,7 +924,20 @@ export function Chat({
       {/* Sticky Bottom Composer for active conversations */}
       {!isEmpty && (
         <div className="chat-input-area">
-          {renderQuestionRail()}
+          {activeForm && !loading && (
+            <div className="contextual-form-rail" aria-live="polite">
+              <InteractiveFormCard
+                title={activeForm.title}
+                description={activeForm.description}
+                fields={activeForm.fields}
+                onSubmitForm={(prompt) => {
+                  setActiveForm(null);
+                  handleSendCustomMessage(prompt);
+                }}
+                onDismiss={() => setActiveForm(null)}
+              />
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="input-shell-capsule">
             {/* Attached File Chips (LibreChat Style) */}
             <FileRow
@@ -931,7 +949,7 @@ export function Chat({
             {isUploading && (
               <div className="uploading-banner">
                 <span className="mini-spinner" />
-                <span>Procesando documento con MarkItDown...</span>
+                <span>Preparando documento…</span>
               </div>
             )}
 
@@ -951,6 +969,15 @@ export function Chat({
                   onSelectUpload={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                 />
+                <button
+                  type="button"
+                  className={`librechat-badge-btn ${webSearchEnabled ? 'active-web' : ''}`}
+                  onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                  title={webSearchEnabled ? 'Búsqueda web en vivo activada' : 'Buscar en Web en vivo'}
+                >
+                  <GlobeIcon size={14} />
+                  <span>{webSearchEnabled ? 'Web Activa' : 'Buscar en Web'}</span>
+                </button>
                 {onOpenPrompts && (
                   <button type="button" className="capsule-icon-btn" onClick={onOpenPrompts} title="Plantillas de prompts">
                     <FileTextIcon size={16} />
@@ -1003,12 +1030,6 @@ export function Chat({
       )}
 
       {/* Modals */}
-      <LaborCalculatorModal
-        isOpen={isLaborCalcOpen}
-        onClose={() => setIsLaborCalcOpen(false)}
-        onInsertToChat={(txt) => handleSendCustomMessage(txt)}
-      />
-
       <RagSettingsModal
         isOpen={isRagSettingsOpen}
         onClose={() => setIsRagSettingsOpen(false)}

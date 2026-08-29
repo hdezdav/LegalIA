@@ -68,10 +68,9 @@ export const SPANISH_GREETINGS = [
 ];
 
 export const EXAMPLE_PROMPTS = [
-  '¿Cuáles son los requisitos de procedibilidad de la acción de tutela?',
-  '¿Qué causales eximen de responsabilidad contractual en el régimen civil colombiano?',
-  '¿Cuál es el término para contestar una demanda en el Código General del Proceso?',
-  '¿Cómo opera la indemnización por despido sin justa causa según el CST?',
+  'Requisitos de acción de tutela',
+  'Responsabilidad contractual civil',
+  'Términos de contestación CGP',
 ];
 
 export interface ModelOption {

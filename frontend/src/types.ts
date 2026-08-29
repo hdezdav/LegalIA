@@ -160,7 +160,6 @@ export interface MemoriesConfig {
 export interface AgentToolsConfig {
   rag_corpus?: boolean;
   docx_export?: boolean;
-  labor_calculator?: boolean;
   interactive_forms?: boolean;
 }
 

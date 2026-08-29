@@ -1,133 +1,47 @@
-/* Interactive Options Card - Minimalist LibreChat White Aesthetic */
-
 .interactive-options-card {
-  margin: 0.75rem 0;
-  border-radius: 8px;
-  border: 1px solid var(--border-medium);
-  background: var(--bg-surface, #ffffff);
-  padding: 0.75rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-[data-theme='dark'] .interactive-options-card {
-  background: var(--bg-surface, #18181b);
-  border-color: var(--border-default, #27272a);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-.options-card-header {
-  margin-bottom: 0.625rem;
-}
-
-.options-card-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 0.25rem;
-}
-
-[data-theme='dark'] .options-card-badge {
-  background: #27272a;
-  color: #a1a1aa;
-  border-color: #3f3f46;
-}
-
-.options-card-title {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary, #0f172a);
-  line-height: 1.35;
-}
-
-.options-card-desc {
-  margin: 0.15rem 0 0 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.3;
-}
-
-/* Options Grid */
-.options-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.option-chip-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-default, #e2e8f0);
-  background: var(--bg-surface, #ffffff);
-  color: var(--text-primary, #1e293b);
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-[data-theme='dark'] .option-chip-btn {
-  background: #27272a;
-  border-color: #3f3f46;
-  color: #e4e4e7;
-}
-
-.option-chip-btn:hover {
-  border-color: var(--border-focus);
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-[data-theme='dark'] .option-chip-btn:hover {
-  background: #3f3f46;
-  border-color: var(--border-focus);
-  color: #ffffff;
-}
-
-.option-chip-btn:focus-visible,
-.question-rail-more:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
-}
-
-.option-chip-text {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
+  max-width: 620px;
+  margin: 0.85rem 0 0.35rem;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  overflow: hidden;
+  gap: 0.6rem;
 }
 
-.option-chip-title {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: inherit;
-  line-height: 1.25;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
+.options-card-header { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; padding: 0 0.2rem; }
+.options-card-title { margin: 0; color: var(--text-primary); font-size: 0.92rem; font-weight: 650; line-height: 1.35; letter-spacing: -0.012em; }
+.options-card-desc { color: var(--text-muted); font-size: 0.78rem; line-height: 1.4; }
+.options-list { display: flex; flex-direction: column; gap: 0.45rem; }
 
-.option-chip-sub {
-  font-size: 0.7rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
+.option-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.15rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent);
+  border-radius: 12px;
+  background: #f7f7f8;
+  color: var(--text-primary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(54, 43, 38, 0.06);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+.option-row-btn:hover { border-color: #bdbdc3; background: #ededee; box-shadow: 0 4px 12px rgba(31, 31, 36, 0.08); transform: translateY(-1px); }
+.option-row-btn:active { transform: scale(0.99); }
+.option-row-btn:focus-visible { outline: 3px solid rgba(70, 70, 78, 0.3); outline-offset: 3px; border-color: #888890; }
+.option-row-number { display: grid; place-items: center; width: 1.55rem; height: 1.55rem; flex: 0 0 auto; border: 1px solid #bdbdc3; border-radius: 50%; color: #66666e; font-size: 0.76rem; font-weight: 700; }
+.option-row-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 0.12rem; }
+.option-row-label { font-size: 0.86rem; font-weight: 600; line-height: 1.35; }
+.option-row-description { color: var(--text-muted); font-size: 0.76rem; line-height: 1.35; }
+.option-row-enter { color: var(--text-dim); font-size: 1rem; line-height: 1; }
+.options-card-hint { padding-left: 0.2rem; color: var(--text-dim); font-size: 0.7rem; }
+
+[data-theme='dark'] .option-row-btn { background: var(--bg-surface); border-color: rgba(255, 255, 255, 0.14); }
+@media (max-width: 640px) { .option-row-btn { min-height: 3rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .option-row-btn { transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease; }
+  .option-row-btn:hover, .option-row-btn:active { transform: none; }
 }

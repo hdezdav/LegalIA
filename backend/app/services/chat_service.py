@@ -190,9 +190,9 @@ class ChatService:
         if is_web_search:
             try:
                 from app.services.web_search_service import search_web_async
-                web_results = await search_web_async(question, max_results=4)
+                web_results = await search_web_async(question, max_results=6)
                 if web_results:
-                    web_context = "\n\nFUENTES WEB EN VIVO RECUPERADAS (CITA CON FORMATO [Título](url)):\n" + "\n".join(
+                    web_context = "\n\nINFORMACIÓN Y FUENTES WEB EN TIEMPO REAL (HECHOS ACTUALES, NOTICIAS, COYUNTURA Y PRECEDENTES RECIENTES):\n" + "\n".join(
                         f"- [{r.title}]({r.url}): {r.snippet}"
                         for r in web_results
                     )
@@ -200,10 +200,17 @@ class ChatService:
                 logger.warning("Web search failed in chat", extra={"error": str(e)})
 
         # Build appropriate system prompt
-        if context_candidates and context_text.strip():
-            system_prompt = self._build_system_prompt(context_text + web_context)
-        elif web_context:
-            system_prompt = self._build_general_system_prompt() + f"\n\n{web_context}\n\nDIRECTRIZ DE CITACIÓN WEB: Cita e hipervincula siempre las fuentes web recuperadas usando formato markdown: [Nombre de la Fuente](URL)."
+        if web_context:
+            base_prompt = self._build_system_prompt(context_text) if (context_candidates and context_text.strip()) else self._build_general_system_prompt()
+            system_prompt = (
+                f"{base_prompt}\n\n{web_context}\n\n"
+                "INSTRUCCIÓN OBLIGATORIA DE BÚSQUEDA WEB Y ACTUALIDAD:\n"
+                "1. Utiliza prioritariamente las fuentes web y la síntesis en tiempo real para responder con máxima precisión sobre quiénes son los mandatarios actuales, hechos y coyuntura política/jurídica reciente, procesos en curso y sentencias relevantes.\n"
+                "2. Cita e hipervincula siempre las fuentes web consultadas utilizando formato Markdown: [Nombre de la Fuente](URL).\n"
+                "3. Responde de forma completa, estructurada, analítica y sin rodeos a todas las partes de la consulta del usuario."
+            )
+        elif context_candidates and context_text.strip():
+            system_prompt = self._build_system_prompt(context_text)
         elif self._is_conversational(question):
             system_prompt = CONVERSATIONAL_SYSTEM_PROMPT
         else:
@@ -300,9 +307,9 @@ class ChatService:
         if is_web_search:
             try:
                 from app.services.web_search_service import search_web_async
-                web_results = await search_web_async(question, max_results=4)
+                web_results = await search_web_async(question, max_results=6)
                 if web_results:
-                    web_context = "\n\nFUENTES WEB EN VIVO RECUPERADAS (CITA CON FORMATO [Título](url)):\n" + "\n".join(
+                    web_context = "\n\nINFORMACIÓN Y FUENTES WEB EN TIEMPO REAL (HECHOS ACTUALES, NOTICIAS, COYUNTURA Y PRECEDENTES RECIENTES):\n" + "\n".join(
                         f"- [{r.title}]({r.url}): {r.snippet}"
                         for r in web_results
                     )
@@ -310,10 +317,17 @@ class ChatService:
                 logger.warning("Web search failed in streaming chat", extra={"error": str(e)})
 
         # Build appropriate system prompt
-        if context_candidates and context_text.strip():
-            system_prompt = self._build_system_prompt(context_text + web_context)
-        elif web_context:
-            system_prompt = self._build_general_system_prompt() + f"\n\n{web_context}\n\nDIRECTRIZ DE CITACIÓN WEB: Cita e hipervincula siempre las fuentes web recuperadas usando formato markdown: [Nombre de la Fuente](URL)."
+        if web_context:
+            base_prompt = self._build_system_prompt(context_text) if (context_candidates and context_text.strip()) else self._build_general_system_prompt()
+            system_prompt = (
+                f"{base_prompt}\n\n{web_context}\n\n"
+                "INSTRUCCIÓN OBLIGATORIA DE BÚSQUEDA WEB Y ACTUALIDAD:\n"
+                "1. Utiliza prioritariamente las fuentes web y la síntesis en tiempo real para responder con máxima precisión sobre quiénes son los mandatarios actuales, hechos y coyuntura política/jurídica reciente, procesos en curso y sentencias relevantes.\n"
+                "2. Cita e hipervincula siempre las fuentes web consultadas utilizando formato Markdown: [Nombre de la Fuente](URL).\n"
+                "3. Responde de forma completa, estructurada, analítica y sin rodeos a todas las partes de la consulta del usuario."
+            )
+        elif context_candidates and context_text.strip():
+            system_prompt = self._build_system_prompt(context_text)
         elif self._is_conversational(question):
             system_prompt = CONVERSATIONAL_SYSTEM_PROMPT
         else:

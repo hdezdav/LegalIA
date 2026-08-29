@@ -38,32 +38,49 @@ def _clean_domain(url_str: str) -> str:
 
 def _clean_search_query(query: str) -> str:
     """Strip bracketed system tags, memory headers or directives before searching."""
+    # Strip markdown and bracketed tags like [AGENT: ...], [MODO: ...]
     cleaned = re.sub(r"\[[^\]]+\]", "", query)
+    cleaned = re.sub(r"Consulta del litigante:\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"Analiza este documento[^\n]*", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned if len(cleaned) >= 3 else query.strip()
 
 
-def _search_tavily_sync(query: str, api_key: str, max_results: int = 5) -> list[WebSearchResult]:
-    """Execute live search via Tavily AI API."""
+def _search_tavily_sync(query: str, api_key: str, max_results: int = 6) -> list[WebSearchResult]:
+    """Execute live search via Tavily AI API with advanced depth and answer synthesis."""
     url = "https://api.tavily.com/search"
     payload = {
         "api_key": api_key,
         "query": query,
-        "search_depth": "basic",
-        "include_answer": False,
+        "search_depth": "advanced",
+        "include_answer": True,
+        "include_domains": [],
         "max_results": max_results,
     }
     results: list[WebSearchResult] = []
 
-    with httpx.Client(timeout=10.0) as client:
+    with httpx.Client(timeout=12.0) as client:
         resp = client.post(url, json=payload)
         if resp.status_code == 200:
             data = resp.json()
+            
+            # If Tavily synthesized a direct factual answer, include it as first grounding item
+            tavily_answer = data.get("answer")
+            if tavily_answer and len(tavily_answer) > 20:
+                results.append(
+                    WebSearchResult(
+                        title="Síntesis de Información Actualizada (Tavily AI)",
+                        url="https://tavily.com",
+                        snippet=tavily_answer,
+                        domain="tavily.com",
+                    )
+                )
+
             for item in data.get("results", []):
                 item_url = item.get("url") or ""
-                title = item.get("title") or "Fuente Web"
+                title = item.get("title") or "Fuente Web Oficial"
                 snippet = item.get("content") or ""
-                if item_url:
+                if item_url and not any(r.url == item_url for r in results):
                     results.append(
                         WebSearchResult(
                             title=title,
@@ -90,7 +107,7 @@ def _search_ddg_sync(query: str, max_results: int = 5) -> list[WebSearchResult]:
                 url = item.get("href") or item.get("url") or ""
                 title = item.get("title") or "Fuente Web"
                 snippet = item.get("body") or item.get("snippet") or ""
-                if url:
+                if url and not any(r.url == url for r in results):
                     results.append(
                         WebSearchResult(
                             title=title,
@@ -105,7 +122,7 @@ def _search_ddg_sync(query: str, max_results: int = 5) -> list[WebSearchResult]:
     return results
 
 
-def search_web_sync(query: str, max_results: int = 5) -> list[WebSearchResult]:
+def search_web_sync(query: str, max_results: int = 6) -> list[WebSearchResult]:
     """Execute live web search prioritizing Tavily with DuckDuckGo fallback."""
     clean_query = _clean_search_query(query)
     tavily_key = settings.TAVILY_API_KEY.get_secret_value().strip() if settings.TAVILY_API_KEY else ""

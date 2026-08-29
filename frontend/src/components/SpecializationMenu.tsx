@@ -48,7 +48,7 @@ export function SpecializationMenu({
   const currentSpec = SPECIALIZATIONS.find((s) => s.id === value) || SPECIALIZATIONS[0];
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
@@ -56,10 +56,12 @@ export function SpecializationMenu({
 
     if (open) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [open]);
 

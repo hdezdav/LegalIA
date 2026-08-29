@@ -71,12 +71,25 @@
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 12px);
   box-shadow: var(--shadow-lg, 0 10px 25px -5px rgba(0, 0, 0, 0.15));
-  z-index: 100;
+  z-index: 150;
   max-height: 480px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   animation: specMenuFadeIn 140ms ease-out;
+}
+
+@media (max-width: 480px) {
+  .spec-dropdown {
+    position: fixed;
+    top: 54px;
+    left: 0.5rem;
+    right: 0.5rem;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 70px);
+    z-index: 250;
+  }
 }
 
 @keyframes specMenuFadeIn {

@@ -579,7 +579,9 @@
     gap: 0.35rem;
     flex: 1;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
+    display: flex;
+    align-items: center;
   }
 
   .topbar-right {

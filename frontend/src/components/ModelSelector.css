@@ -61,11 +61,24 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: 0.5rem;
-  z-index: 50;
+  z-index: 150;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   animation: modelDropdownFadeIn 0.15s ease-out;
+}
+
+@media (max-width: 480px) {
+  .model-dropdown-menu {
+    position: fixed;
+    top: 54px;
+    left: 0.5rem;
+    right: 0.5rem;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 70px);
+    z-index: 250;
+  }
 }
 
 @keyframes modelDropdownFadeIn {

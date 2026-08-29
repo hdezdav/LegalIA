@@ -13,6 +13,10 @@
   user-select: none;
 }
 
+.sidebar-mobile-nav {
+  display: none;
+}
+
 .rail-top {
   display: flex;
   flex-direction: column;
@@ -82,6 +86,9 @@
   gap: 3px;
   margin-bottom: 0.5rem;
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  font: inherit;
   padding: 4px 6px;
   border-radius: var(--radius-xs);
   transition: all var(--transition-fast);
@@ -310,16 +317,55 @@
 
 @media (max-width: 768px) {
   .sidebar-rail {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 48px;
-    height: 100vh;
-    height: 100dvh;
-    z-index: 100;
+    display: none;
+  }
+
+  .sidebar-mobile-nav {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.6rem 0.7rem 0.75rem;
+    overflow: visible;
     background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-subtle);
+  }
+
+  .sidebar-mobile-nav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sidebar-mobile-nav .rail-btn {
+    width: 100%;
+    min-height: 42px;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+    font-size: 0.82rem;
+  }
+
+  .sidebar-mobile-nav .rail-btn:first-child {
+    display: none;
+  }
+
+  .sidebar-mobile-nav .rail-bottom {
+    align-items: stretch;
+    width: 100%;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .sidebar-mobile-nav .rail-token-widget {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin: 0 0 0.6rem;
+  }
+
+  .sidebar-mobile-nav .rail-avatar-circle {
+    margin: 0 0.5rem;
   }
 
   .rail-btn,
@@ -329,11 +375,21 @@
   }
 
   .profile-popover-menu {
-    position: fixed;
-    left: 56px;
-    bottom: 0.75rem;
-    max-width: calc(100vw - 68px);
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4.5rem;
+    max-width: calc(100% - 0.5rem);
     width: 270px;
     z-index: 110;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rail-avatar-circle,
+    .rail-token-widget,
+    .profile-popover-menu {
+      transition: none;
+      animation: none;
+    }
   }
 }

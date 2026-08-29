@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   SidePanelTab,
   Conversation,
@@ -7,7 +8,10 @@ import {
   MemoriesConfig,
   ParsedFile,
   TokenQuota,
+  User,
 } from '../../types';
+import { Sidebar } from '../Sidebar';
+import { ChevronLeftIcon } from '../Icons';
 import { ConversationsView } from './ConversationsView';
 import { AgentsView } from './AgentsView';
 import { PromptsView } from './PromptsView';
@@ -20,6 +24,10 @@ interface SidePanelProps {
   activeTab: SidePanelTab | null;
   isOpen: boolean;
   onClose?: () => void;
+  onLogout?: () => void;
+  onGoToLanding?: () => void;
+  user?: User | null;
+  onTabClick: (tab: SidePanelTab) => void;
   quota?: TokenQuota | null;
   // Conversations
   conversations: Conversation[];
@@ -55,6 +63,10 @@ export function SidePanel({
   activeTab,
   isOpen,
   onClose,
+  onLogout,
+  onGoToLanding,
+  user,
+  onTabClick,
   quota,
   conversations,
   activeConversationId,
@@ -80,6 +92,45 @@ export function SidePanel({
   onDeleteFile,
   onInsertFileToChat,
 }: SidePanelProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+    handleChange();
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+
+    previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCloseRef.current?.();
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    mobileCloseButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocusedElementRef.current?.isConnected) {
+        previouslyFocusedElementRef.current.focus();
+      }
+      previouslyFocusedElementRef.current = null;
+    };
+  }, [isOpen, isMobile]);
+
   if (!isOpen || !activeTab) {
     return null;
   }
@@ -178,18 +229,36 @@ export function SidePanel({
   return (
     <>
       <div className="sidepanel-backdrop" onClick={onClose} aria-hidden="true" />
-      <aside className="sidepanel-dock">
+      <aside
+        className="sidepanel-dock"
+        role={isMobile ? 'dialog' : undefined}
+        aria-modal={isMobile ? 'true' : undefined}
+        aria-labelledby={isMobile ? 'sidepanel-mobile-title' : undefined}
+      >
         <div className="sidepanel-mobile-header">
-          <span className="sidepanel-mobile-title">{tabTitle}</span>
+          <span id="sidepanel-mobile-title" className="sidepanel-mobile-title">
+            {tabTitle}
+          </span>
           <button
             type="button"
             className="sidepanel-mobile-close-btn"
             onClick={onClose}
             aria-label="Cerrar panel"
+            ref={mobileCloseButtonRef}
           >
-            ✕
+            <ChevronLeftIcon size={18} />
           </button>
         </div>
+        <Sidebar
+          variant="mobile"
+          user={user}
+          quota={quota}
+          activeTab={activeTab}
+          isSidePanelOpen={isOpen}
+          onTabClick={onTabClick}
+          onLogout={onLogout || (() => onClose?.())}
+          onGoToLanding={onGoToLanding}
+        />
         {renderContent()}
       </aside>
     </>

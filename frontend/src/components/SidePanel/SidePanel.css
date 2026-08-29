@@ -36,9 +36,9 @@
   .sidepanel-dock {
     position: fixed;
     top: 0;
-    left: 48px;
+    left: 0;
     bottom: 0;
-    width: calc(min(320px, 86vw) - 48px);
+    width: min(340px, 88vw);
     height: 100vh;
     height: 100dvh;
     z-index: 100;
@@ -1241,10 +1241,9 @@
 
   .sidepanel-dock {
     position: fixed;
-    inset: 0 0 0 48px;
-    width: calc(100vw - 48px);
+    inset: 0;
+    width: min(340px, 88vw);
     max-width: none;
-    width: calc(100vw - 48px);
     box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
   }
 
@@ -1258,5 +1257,28 @@
     font-size: 0.85rem;
     font-weight: 700;
     text-transform: capitalize;
+  }
+
+  .sidepanel-dock {
+    animation: slideInLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sidepanel-content {
+    height: auto;
+    min-height: 0;
+    flex: 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .sidepanel-dock {
+    width: 92vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidepanel-dock,
+  .sidepanel-backdrop {
+    animation: none;
   }
 }

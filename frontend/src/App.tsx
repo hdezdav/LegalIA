@@ -82,7 +82,7 @@ export function App() {
 
   // SidePanel Unified Tab Navigation State (LibreChat Architecture)
   const [activeTab, setActiveTab] = useState<SidePanelTab | null>('chats');
-  const [sidePanelOpen, setSidePanelOpen] = useState(true);
+  const [sidePanelOpen, setSidePanelOpen] = useState(() => window.innerWidth > 768);
 
   // Injected text from Prompts/Files into Chat
   const [injectedText, setInjectedText] = useState<string | null>(null);
@@ -391,6 +391,10 @@ export function App() {
         activeTab={activeTab}
         isOpen={sidePanelOpen}
         onClose={() => setSidePanelOpen(false)}
+        onLogout={handleLogout}
+        onGoToLanding={() => setCurrentView('landing')}
+        user={currentUser}
+        onTabClick={handleTabClick}
         quota={quota}
         conversations={conversations}
         activeConversationId={activeConversationId}

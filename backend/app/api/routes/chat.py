@@ -293,6 +293,17 @@ async def chat_completions(
 
     if payload.stream:
         selected_model = payload.model if payload.model and payload.model != "legalia" else settings.LLM_MODEL
+        from app.services.generation_manager import generation_manager
+
+        # Start decoupled server-side generation job
+        job = await generation_manager.start_job(
+            service_factory=_build_service,
+            user_id=user.id,
+            question=question,
+            history=history,
+            model=payload.model,
+            external_conversation_id=payload.conversation_id,
+        )
 
         async def sse_generator():
             import json
@@ -303,13 +314,7 @@ async def chat_completions(
             created_ts = int(time.time())
 
             try:
-                async for token in service.answer_stream(
-                    session,
-                    user=user,
-                    question=question,
-                    history=history,
-                    model=payload.model if payload.model and payload.model != "legalia" else None,
-                ):
+                async for token in generation_manager.subscribe(job):
                     chunk = {
                         "id": req_id,
                         "object": "chat.completion.chunk",
@@ -341,21 +346,7 @@ async def chat_completions(
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 yield "data: [DONE]\n\n"
             except Exception as e:
-                logger.error("SSE stream error", extra={"error": str(e)})
-                err_chunk = {
-                    "id": req_id,
-                    "object": "chat.completion.chunk",
-                    "created": created_ts,
-                    "model": selected_model,
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {"content": "\n\n[Error al generar la respuesta en streaming]"},
-                            "finish_reason": "error",
-                        }
-                    ],
-                }
-                yield f"data: {json.dumps(err_chunk)}\n\n"
+                logger.error("SSE stream client disconnected or error", extra={"error": str(e), "job_id": job.job_id})
                 yield "data: [DONE]\n\n"
 
         return StreamingResponse(
@@ -374,6 +365,7 @@ async def chat_completions(
             user=user,
             question=question,
             history=history,
+            external_conversation_id=payload.conversation_id,
             model=payload.model if payload.model and payload.model != "legalia" else None,
         )
     except LLMError as exc:

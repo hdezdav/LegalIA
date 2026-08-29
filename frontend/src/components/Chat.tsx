@@ -236,6 +236,52 @@ export function Chat({
   useEffect(() => {
     setActiveForm(null);
     publishedFormsRef.current.clear();
+
+    // Reconcile background-completed responses from PostgreSQL
+    let isMounted = true;
+    const fetchLatestServerState = async () => {
+      if (!conversation.id) return;
+      try {
+        const remote = await api.getConversation(conversation.id);
+        if (!remote || !isMounted) return;
+
+        if (remote.messages && remote.messages.length > 0) {
+          const lastLocal = conversation.messages[conversation.messages.length - 1];
+          const lastRemote = remote.messages[remote.messages.length - 1];
+
+          const needsUpdate =
+            remote.messages.length > conversation.messages.length ||
+            (lastLocal && lastRemote && lastLocal.role === 'assistant' && lastLocal.content.length < lastRemote.content.length);
+
+          if (needsUpdate) {
+            const updatedMessages: MessageType[] = remote.messages.map((rm) => ({
+              id: rm.id,
+              role: rm.role,
+              content: rm.content,
+              timestamp: rm.timestamp,
+              metadata: {
+                verification_status: rm.verification_status,
+                refused_for_lack_of_evidence: rm.refused_for_lack_of_evidence,
+              },
+            }));
+
+            onUpdateConversation({
+              ...conversation,
+              title: remote.title || conversation.title,
+              messages: updatedMessages,
+              updated_at: remote.updated_at || Date.now(),
+            });
+          }
+        }
+      } catch {
+        // Ignore network failure when offline
+      }
+    };
+
+    fetchLatestServerState();
+    return () => {
+      isMounted = false;
+    };
   }, [conversation.id]);
 
   useEffect(() => {
@@ -443,6 +489,7 @@ export function Chat({
         {
           model: selectedModelId,
           messages: apiMessages,
+          conversation_id: conversation.id,
         },
         (token: string) => {
           accumulatedText += token;

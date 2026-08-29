@@ -51,6 +51,9 @@ class ChatCompletionRequest(BaseModel):
     # answer. Letting a client raise it would make answers unreproducible.
     temperature: float | None = None
 
+    # Conversation ID to bind message turns to an explicit conversation thread
+    conversation_id: str | None = None
+
     # OpenAI's per-end-user identifier. Used to attribute the turn when the
     # caller is a trusted frontend holding a service token.
     user: str | None = None

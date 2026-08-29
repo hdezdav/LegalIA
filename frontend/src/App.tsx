@@ -194,6 +194,59 @@ export function App() {
     }
   }, [conversations, activeConversationId]);
 
+  // Synchronize conversations with PostgreSQL on authentication
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isMounted = true;
+    const syncServerConversations = async () => {
+      try {
+        const remoteList = await api.getConversations();
+        if (!isMounted || !remoteList || remoteList.length === 0) return;
+
+        setConversations((localConvos) => {
+          const localMap = new Map(localConvos.map((c) => [c.id, c]));
+          const merged: Conversation[] = [];
+
+          for (const remote of remoteList) {
+            const existing = localMap.get(remote.id);
+            if (existing) {
+              merged.push({
+                ...existing,
+                title: remote.title || existing.title,
+                specialization: (remote.specialization as any) || existing.specialization,
+                updated_at: Math.max(existing.updated_at, remote.updated_at),
+              });
+              localMap.delete(remote.id);
+            } else {
+              merged.push({
+                id: remote.id,
+                title: remote.title,
+                specialization: (remote.specialization as any) || 'general',
+                messages: [],
+                created_at: remote.created_at,
+                updated_at: remote.updated_at,
+              });
+            }
+          }
+
+          for (const remaining of localMap.values()) {
+            merged.push(remaining);
+          }
+
+          return merged.sort((a, b) => b.updated_at - a.updated_at);
+        });
+      } catch {
+        // Ignore network failure when offline
+      }
+    };
+
+    syncServerConversations();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
   const activeConversation =
     conversations.find((c) => c.id === activeConversationId) || conversations[0];
 
@@ -201,6 +254,7 @@ export function App() {
     const fresh = createConversation();
     setConversations((prev) => [fresh, ...prev]);
     setActiveConversationId(fresh.id);
+    api.syncConversation({ id: fresh.id, title: fresh.title, specialization: fresh.specialization });
   }, []);
 
   const handleSelectConversation = (id: string) => {
@@ -218,14 +272,17 @@ export function App() {
       }
       return [updated, ...prev];
     });
+    api.syncConversation({ id: updated.id, title: updated.title, specialization: updated.specialization });
   };
 
   const handleDeleteConversation = (id: string) => {
+    api.deleteConversation(id);
     setConversations((prev) => {
       const filtered = prev.filter((c) => c.id !== id);
       if (filtered.length === 0) {
         const fresh = createConversation();
         setActiveConversationId(fresh.id);
+        api.syncConversation({ id: fresh.id, title: fresh.title, specialization: fresh.specialization });
         return [fresh];
       }
       if (activeConversationId === id) {

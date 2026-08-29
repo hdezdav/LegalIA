@@ -284,6 +284,71 @@ export const api = {
     };
   },
 
+  async getConversations(): Promise<Array<{
+    id: string;
+    title: string;
+    specialization: string;
+    created_at: number;
+    updated_at: number;
+    message_count: number;
+    is_generating: boolean;
+  }>> {
+    try {
+      const response = await fetchWithAuth(`${API_BASE}/conversations`);
+      if (!response.ok) return [];
+      return response.json();
+    } catch {
+      return [];
+    }
+  },
+
+  async getConversation(id: string): Promise<{
+    id: string;
+    title: string;
+    specialization: string;
+    created_at: number;
+    updated_at: number;
+    is_generating: boolean;
+    generating_text?: string;
+    messages: Array<{
+      id: string;
+      role: 'user' | 'assistant';
+      content: string;
+      timestamp: number;
+      verification_status?: string;
+      refused_for_lack_of_evidence?: boolean;
+    }>;
+  } | null> {
+    try {
+      const response = await fetchWithAuth(`${API_BASE}/conversations/${id}`);
+      if (!response.ok) return null;
+      return response.json();
+    } catch {
+      return null;
+    }
+  },
+
+  async syncConversation(payload: { id?: string; title: string; specialization?: string }): Promise<void> {
+    try {
+      await fetchWithAuth(`${API_BASE}/conversations`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // ignore
+    }
+  },
+
+  async deleteConversation(id: string): Promise<void> {
+    try {
+      await fetchWithAuth(`${API_BASE}/conversations/${id}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // ignore
+    }
+  },
+
   logout() {
     clearTokens();
   },

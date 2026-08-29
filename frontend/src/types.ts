@@ -71,6 +71,7 @@ export interface TokenResponse {
 export interface ChatRequest {
   model: string;
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  conversation_id?: string;
 }
 
 export interface ChatResponse {

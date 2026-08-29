@@ -10,8 +10,17 @@ import {
   TokenQuota,
   User,
 } from '../../types';
-import { Sidebar } from '../Sidebar';
-import { ChevronLeftIcon } from '../Icons';
+import {
+  PlusIcon,
+  MessageSquareIcon,
+  BotIcon,
+  FileTextIcon,
+  PaperclipIcon,
+  BrainIcon,
+  SparklesIcon,
+  LogOutIcon,
+  ScalesIcon,
+} from '../Icons';
 import { ConversationsView } from './ConversationsView';
 import { AgentsView } from './AgentsView';
 import { PromptsView } from './PromptsView';
@@ -211,20 +220,21 @@ export function SidePanel({
 
   if (!isOpen) return null;
 
-  const tabTitle =
-    activeTab === 'chats'
-      ? 'Conversaciones'
-      : activeTab === 'agents'
-      ? 'Agentes Jurídicos'
-      : activeTab === 'prompts'
-      ? 'Plantillas de Prompts'
-      : activeTab === 'memories'
-      ? 'Memoria'
-      : activeTab === 'files'
-      ? 'Archivos'
-      : activeTab === 'bookmarks'
-      ? 'Marcadores'
-      : 'Instrucciones';
+  const getInitials = (name?: string) => {
+    if (!name) return 'AB';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const handleMobileNewChat = () => {
+    onNewConversation();
+    if (onClose) onClose();
+  };
+
+  const handleMobileSelectTab = (tab: SidePanelTab) => {
+    onTabClick(tab);
+  };
 
   return (
     <>
@@ -235,10 +245,12 @@ export function SidePanel({
         aria-modal={isMobile ? 'true' : undefined}
         aria-labelledby={isMobile ? 'sidepanel-mobile-title' : undefined}
       >
+        {/* Mobile Header: Brand + Close */}
         <div className="sidepanel-mobile-header">
-          <span id="sidepanel-mobile-title" className="sidepanel-mobile-title">
-            {tabTitle}
-          </span>
+          <div className="mobile-header-brand">
+            <img src="/logos/legalia.svg" alt="LegalIA" className="mobile-brand-logo" />
+            <span id="sidepanel-mobile-title" className="sidepanel-mobile-title">LegalIA</span>
+          </div>
           <button
             type="button"
             className="sidepanel-mobile-close-btn"
@@ -246,20 +258,114 @@ export function SidePanel({
             aria-label="Cerrar panel"
             ref={mobileCloseButtonRef}
           >
-            <ChevronLeftIcon size={18} />
+            ✕
           </button>
         </div>
-        <Sidebar
-          variant="mobile"
-          user={user}
-          quota={quota}
-          activeTab={activeTab}
-          isSidePanelOpen={isOpen}
-          onTabClick={onTabClick}
-          onLogout={onLogout || (() => onClose?.())}
-          onGoToLanding={onGoToLanding}
-        />
-        {renderContent()}
+
+        {/* Mobile Primary CTA: Nueva Conversación */}
+        <div className="mobile-drawer-cta-row">
+          <button
+            type="button"
+            className="mobile-drawer-new-chat-btn"
+            onClick={handleMobileNewChat}
+          >
+            <PlusIcon size={16} />
+            <span>Nueva conversación</span>
+          </button>
+        </div>
+
+        {/* Mobile Segmented Navigation Tabs */}
+        <div className="mobile-drawer-tabs-scroll">
+          <button
+            type="button"
+            className={`mobile-tab-pill ${activeTab === 'chats' ? 'active' : ''}`}
+            onClick={() => handleMobileSelectTab('chats')}
+          >
+            <MessageSquareIcon size={14} />
+            <span>Chats</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-tab-pill ${activeTab === 'agents' ? 'active' : ''}`}
+            onClick={() => handleMobileSelectTab('agents')}
+          >
+            <BotIcon size={14} />
+            <span>Agentes</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-tab-pill ${activeTab === 'prompts' ? 'active' : ''}`}
+            onClick={() => handleMobileSelectTab('prompts')}
+          >
+            <FileTextIcon size={14} />
+            <span>Prompts</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-tab-pill ${activeTab === 'files' ? 'active' : ''}`}
+            onClick={() => handleMobileSelectTab('files')}
+          >
+            <PaperclipIcon size={14} />
+            <span>Archivos</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-tab-pill ${activeTab === 'memories' ? 'active' : ''}`}
+            onClick={() => handleMobileSelectTab('memories')}
+          >
+            <BrainIcon size={14} />
+            <span>Memoria</span>
+          </button>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="sidepanel-view-container">
+          {renderContent()}
+        </div>
+
+        {/* Mobile Footer: User Profile & Remaining Tokens */}
+        <div className="mobile-drawer-footer">
+          <div className="mobile-user-row">
+            <div className="mobile-user-avatar">
+              {getInitials(user?.full_name)}
+            </div>
+            <div className="mobile-user-info">
+              <span className="mobile-user-name">{user?.full_name || 'Dr. Abogado'}</span>
+              <span className="mobile-user-quota">
+                <SparklesIcon size={11} className="quota-sparkle" />
+                {quota?.remaining_millions || '13.7'}M tokens disponibles
+              </span>
+            </div>
+            {onGoToLanding && (
+              <button
+                type="button"
+                className="mobile-landing-btn"
+                onClick={() => {
+                  if (onClose) onClose();
+                  onGoToLanding();
+                }}
+                title="Página principal"
+                aria-label="Página principal"
+              >
+                <ScalesIcon size={16} />
+              </button>
+            )}
+            {onLogout && (
+              <button
+                type="button"
+                className="mobile-logout-btn"
+                onClick={() => {
+                  if (onClose) onClose();
+                  onLogout();
+                }}
+                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+              >
+                <LogOutIcon size={16} />
+              </button>
+            )}
+          </div>
+        </div>
       </aside>
     </>
   );

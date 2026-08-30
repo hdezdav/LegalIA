@@ -15,12 +15,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Validate SSH credentials
+        env:
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_PASS: ${{ secrets.VPS_PASS }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$VPS_PASSWORD$VPS_PASS$VPS_SSH_KEY$SSH_PRIVATE_KEY" ]; then
+            echo "::error::Missing SSH credentials. Configure at least one of: VPS_PASSWORD, VPS_PASS, VPS_SSH_KEY, SSH_PRIVATE_KEY."
+            exit 1
+          fi
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 166.1.88.122
           username: root
-          password: ${{ secrets.VPS_PASSWORD }}
+          password: ${{ secrets.VPS_PASSWORD || secrets.VPS_PASS }}
+          key: ${{ secrets.VPS_SSH_KEY || secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
             echo "🚀 Actualizando LegalIA en el VPS..."

@@ -60,13 +60,11 @@ REFUSAL_MESSAGE = (
 )
 
 CONVERSATIONAL_SYSTEM_PROMPT = (
-    "Eres LegalIA, el asistente de inteligencia artificial especializado en el "
-    "ordenamiento jurídico de la República de Colombia. Responde de manera amable, "
-    "profesional y concisa a los saludos, presentaciones o consultas generales del usuario. "
-    "Explica que puedes asistir en el análisis, interpretación y búsqueda fundamentada de normas "
-    "del derecho colombiano (Constitución Política de 1991, Códigos Civil, Penal, General del Proceso, "
-    "CPACA, Comercio, Laboral, Disciplinario, leyes y sentencias de altas cortes). "
-    "Invita al usuario a formular su consulta jurídica específica."
+    "DIRECTRICES DE RESPUESTA (ASISTENCIA JURÍDICA DE COLOMBIA):\n"
+    "Responde de manera formal, ejecutiva, profesional y concisa a los saludos o consultas iniciales del usuario. "
+    "Indica que brindas asistencia técnica en el análisis, interpretación y fundamentación del derecho colombiano "
+    "(Constitución Política de 1991, Códigos Civil, Penal, General del Proceso, CPACA, Comercio, Laboral, Disciplinario, "
+    "leyes vigentes y jurisprudencia de altas cortes). Invita a formular la consulta jurídica o subir los documentos para su análisis."
 )
 
 CONVERSATIONAL_PHRASES = {
@@ -475,9 +473,8 @@ class ChatService:
     @staticmethod
     def _build_system_prompt(context: str) -> str:
         """Grounding rules plus retrieved official corpus context."""
-        return f"""Eres LegalIA, el sistema de inteligencia artificial jurídica de mayor rigor y autoridad en el ordenamiento legal de la República de Colombia.
-
-Tu función es brindar análisis doctrinario, procesal, sustantivo y contractual con el estándar de un Consultor Jurídico Senior / Magistrado Auxiliar.
+        return f"""DIRECTRICES DE OPERACIÓN Y ANÁLISIS JURÍDICO (REPÚBLICA DE COLOMBIA):
+Proporciona análisis doctrinario, procesal, sustantivo y contractual con el estándar técnico de un Consultor Jurídico Senior / Magistrado Auxiliar en el ordenamiento legal colombiano.
 
 FUENTES DEL CORPUS OFICIAL COLOMBIANO RECUPERADAS:
 {context}
@@ -541,9 +538,8 @@ METODOLOGÍA Y REGLAS DE RESPUESTA:
     @staticmethod
     def _build_general_system_prompt() -> str:
         """System prompt when no specific corpus context was retrieved."""
-        return """Eres LegalIA, el sistema de inteligencia artificial jurídica de mayor rigor y autoridad en el ordenamiento legal de la República de Colombia.
-
-Tu función es brindar análisis doctrinario, procesal, sustantivo y contractual con el estándar de un Consultor Jurídico Senior / Magistrado Auxiliar.
+        return """DIRECTRICES DE OPERACIÓN Y ANÁLISIS JURÍDICO (REPÚBLICA DE COLOMBIA):
+Proporciona análisis doctrinario, procesal, sustantivo y contractual con el estándar técnico de un Consultor Jurídico Senior / Magistrado Auxiliar en el ordenamiento legal colombiano.
 
 ÁREAS DE COMPETENCIA Y CRITERIOS TÉCNICOS:
 - **Derecho Constitucional**: Bloque de Constitucionalidad, garantías fundamentales, acciones constitucionales (Tutela - Dec. 2591/91, Habeas Corpus - Ley 1095/06, Popular y de Grupo - Ley 472/98, Cumplimiento - Ley 393/97).

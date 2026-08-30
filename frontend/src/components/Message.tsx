@@ -5,7 +5,7 @@ import { Message as MessageType } from '../types';
 import { copyToClipboard } from '../utils';
 import { exportToWord, exportToPdf } from '../utils/documentExport';
 import { getTranslations } from '../i18n';
-import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon, DownloadIcon, FileTextIcon } from './Icons';
+import { UserIcon, CopyIcon, CheckIcon, RefreshIcon, SparklesIcon, DownloadIcon, FileTextIcon, ShieldCheckIcon } from './Icons';
 import { LegaliaBotAvatar } from './LegaliaBotAvatar';
 import { LegalDocumentCard } from './Chat/LegalDocumentCard';
 import { InteractiveOptionsCard, parseOptionsMarkdown } from './Chat/InteractiveOptionsCard';
@@ -19,21 +19,24 @@ const t = getTranslations('es');
 interface MessageProps {
   message: MessageType;
   isStreaming?: boolean;
+  isHistorical?: boolean;
   onRegenerate?: () => void;
   onSendMessage?: (text: string) => void;
   onFormReady?: (messageId: string, form: { title: string; description?: string; fields: FormField[] }, contentKey: string) => void;
 }
 
-function CodeBlock({ inline, className, children, onSendMessage, isStreaming, ...props }: any) {
+function CodeBlock({ inline, className, children, onSendMessage, isStreaming, isHistorical, ...props }: any) {
   const [copied, setCopied] = useState(false);
   const match = /language-([\w-]+)/.exec(className || '');
   const language = match ? match[1].toLowerCase() : '';
   const codeContent = String(children).replace(/\n$/, '');
+  const isJsonOptions = !inline && (language === 'json' || language === '') && (codeContent.includes('"preguntas"') || codeContent.includes('"opciones"') || codeContent.includes('"preguntar_opciones"'));
   const isOptionsBlock = !inline && (
     language.includes('interactive-options') ||
     language.includes('options') ||
     language.includes('opciones') ||
-    language.includes('preguntas')
+    language.includes('preguntas') ||
+    isJsonOptions
   );
   const isFormBlock = !inline && (
     language.includes('legal-form') ||
@@ -51,9 +54,9 @@ function CodeBlock({ inline, className, children, onSendMessage, isStreaming, ..
     );
   }
 
-  // Interactive choices remain attached to the assistant response.
+  // Interactive choices remain attached to the assistant response only if it hasn't been answered yet.
   if (isOptionsBlock) {
-    if (isStreaming || !parsedOptions?.options.length) return null;
+    if (isStreaming || isHistorical || !parsedOptions?.options.length) return null;
     return (
       <InteractiveOptionsCard
         title={parsedOptions.title}
@@ -80,6 +83,14 @@ function CodeBlock({ inline, className, children, onSendMessage, isStreaming, ..
     language === 'doc';
 
   if (isLegalDoc) {
+    if (isStreaming) {
+      return (
+        <div className="legal-doc-generating-pill">
+          <FileTextIcon size={15} />
+          <span>Estructurando documento judicial...</span>
+        </div>
+      );
+    }
     let title = 'Documento Jurídico';
     const lines = codeContent.split('\n');
     for (const line of lines) {
@@ -125,7 +136,7 @@ function CodeBlock({ inline, className, children, onSendMessage, isStreaming, ..
   );
 }
 
-export function Message({ message, isStreaming = false, onRegenerate, onSendMessage, onFormReady }: MessageProps) {
+export function Message({ message, isStreaming = false, isHistorical = false, onRegenerate, onSendMessage, onFormReady }: MessageProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -140,12 +151,12 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
   const isThinking = !isUser && isStreaming && !message.content.trim();
 
   useEffect(() => {
-    if (isUser || isStreaming || !message.content.trim()) return;
+    if (isUser || isStreaming || isHistorical || !message.content.trim()) return;
     const formMatch = message.content.match(/```(?:legal-form|formulario|intake|form)\s*\n([\s\S]*?)```/i);
     if (!formMatch) return;
     const parsed = parseFormMarkdown(formMatch[1]);
     if (parsed.fields.length) onFormReady?.(message.id, parsed, formMatch[1].trim());
-  }, [isUser, isStreaming, message.id, message.content, onFormReady]);
+  }, [isUser, isStreaming, isHistorical, message.id, message.content, onFormReady]);
 
   // Detect if full assistant message is a drafted legal document
   const isDraftedLegalDoc = useMemo(() => {
@@ -180,6 +191,31 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
     }
     return 'Documento Jurídico Legalia';
   }, [isDraftedLegalDoc, message.content]);
+
+  const markdownComponents = useMemo(() => ({
+    code: (props: any) => (
+      <CodeBlock
+        {...props}
+        onSendMessage={onSendMessage}
+        isStreaming={isStreaming}
+        isHistorical={isHistorical}
+      />
+    ),
+    a: ({ href, children, ...props }: any) => {
+      const isCitation = typeof children === 'string' && /^\[?\d+\]?$/.test(children.trim());
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={isCitation ? 'inline-citation-badge' : 'markdown-link'}
+          {...props}
+        >
+          {children}
+        </a>
+      );
+    },
+  }), [onSendMessage, isStreaming, isHistorical]);
 
   return (
     <div className={`msg-row ${isUser ? 'msg-row-user' : 'msg-row-assistant'}`}>
@@ -217,29 +253,7 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
             <>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                components={{
-                   code: (props) => (
-                     <CodeBlock
-                       {...props}
-                       onSendMessage={onSendMessage}
-                       isStreaming={isStreaming}
-                     />
-                   ),
-                   a: ({ href, children, ...props }) => {
-                     const isCitation = typeof children === 'string' && /^\[?\d+\]?$/.test(children.trim());
-                     return (
-                       <a
-                         href={href}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className={isCitation ? 'inline-citation-badge' : 'markdown-link'}
-                         {...props}
-                       >
-                         {children}
-                       </a>
-                     );
-                   },
-                }}
+                components={markdownComponents}
               >
                 {message.content}
               </ReactMarkdown>
@@ -254,23 +268,33 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
             {message.metadata.verification_status && (
               <span
                 className={`badge ${
-                  message.metadata.refused_for_lack_of_evidence ? 'badge-warn' : 'badge-ok'
+                  message.metadata.refused_for_lack_of_evidence
+                    ? 'badge-warn'
+                    : message.metadata.verification_status === 'SUPPORTED'
+                    ? 'badge-ok'
+                    : 'badge-partial'
                 }`}
+                title={`Estado de verificación: ${message.metadata.verification_status}`}
               >
+                <ShieldCheckIcon size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                 {message.metadata.refused_for_lack_of_evidence
                   ? t.evidence.noEvidence
+                  : message.metadata.verification_status === 'SUPPORTED'
+                  ? 'Respaldo Jurídico Completo'
+                  : message.metadata.verification_status === 'PARTIALLY_SUPPORTED'
+                  ? 'Respaldo Parcial'
                   : t.evidence.verified}
               </span>
             )}
 
             {message.metadata.context_chunk_count !== undefined && (
-              <span className="badge badge-neutral">
+              <span className="badge badge-neutral" title="Fragmentos normativos analizados en esta consulta">
                 {message.metadata.context_chunk_count} {t.evidence.fragments}
               </span>
             )}
 
             {message.metadata.reranked && (
-              <span className="badge badge-muted">{t.evidence.reranked}</span>
+              <span className="badge badge-muted" title="Reordenamiento semántico avanzado">{t.evidence.reranked}</span>
             )}
           </div>
         )}
@@ -286,7 +310,7 @@ export function Message({ message, isStreaming = false, onRegenerate, onSendMess
                   title="Descargar documento en Microsoft Word (.docx)"
                 >
                   <DownloadIcon size={13} />
-                  <span>Descargar Word (.docx)</span>
+                  <span>Descargar Word</span>
                 </button>
 
                 <button

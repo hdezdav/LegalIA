@@ -8,7 +8,7 @@ set -euo pipefail
 
 VPS_IP="${VPS_IP:-166.1.88.122}"
 VPS_USER="${VPS_USER:-root}"
-VPS_PASS="${VPS_PASS:-W5y6dV3XJ9cl];}"
+VPS_PASS="${VPS_PASS:-}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/legalia}"
 LOCAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { CitationItem } from '../../types';
 import { GlobeIcon, ExternalLinkIcon, FileTextIcon } from '../Icons';
+import { CitationInspectorModal } from './CitationInspectorModal';
 import './SourcesRail.css';
 
 export interface SourceItem {
@@ -61,7 +62,6 @@ export function extractSources(
     const domain = getDomain(url);
     const key = url.toLowerCase();
 
-    // Exclude self-references or purely internal anchor links
     if (url.startsWith('http') && !sourcesMap.has(key)) {
       sourcesMap.set(key, {
         id: `link-${linkIdx++}`,
@@ -90,7 +90,7 @@ export function extractSources(
     }
   }
 
-  // 4. Extract Colombian Court Precedents (Sentencias) if no web links were explicitly given
+  // 4. Extract Colombian Court Precedents (Sentencias)
   if (sourcesMap.size === 0) {
     const sentenceRegex = /\b(Sentencia\s+(?:C|SU|T|SL|SC|SP|STC|STL)-[0-9]{2,4}\s*(?:\/|\s*de\s*)[0-9]{2,4})\b/gi;
     const foundSentences = new Set<string>();
@@ -119,6 +119,8 @@ interface SourcesRailProps {
 }
 
 export function SourcesRail({ markdown, metadataCitations }: SourcesRailProps) {
+  const [selectedSource, setSelectedSource] = useState<SourceItem | null>(null);
+  
   const sources = useMemo(
     () => extractSources(markdown, metadataCitations),
     [markdown, metadataCitations]
@@ -127,53 +129,60 @@ export function SourcesRail({ markdown, metadataCitations }: SourcesRailProps) {
   if (sources.length === 0) return null;
 
   return (
-    <div className="perplexity-sources-section">
-      <div className="sources-rail-header">
-        <GlobeIcon size={14} className="sources-globe-icon" />
-        <span className="sources-rail-title">Fuentes y Referencias ({sources.length})</span>
-      </div>
+    <>
+      <div className="perplexity-sources-section">
+        <div className="sources-rail-header">
+          <GlobeIcon size={14} className="sources-globe-icon" />
+          <span className="sources-rail-title">Fuentes y Respaldo Jurídico ({sources.length})</span>
+        </div>
 
-      <div className="sources-cards-grid">
-        {sources.map((source, index) => {
-          const faviconUrl = `https://www.google.com/s2/favicons?domain=${source.domain}&sz=32`;
+        <div className="sources-cards-grid">
+          {sources.map((source, index) => {
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${source.domain}&sz=32`;
 
-          return (
-            <a
-              key={source.id || index}
-              href={source.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="perplexity-source-card"
-              title={`Abrir fuente: ${source.title} (${source.domain})`}
-            >
-              <div className="source-card-header">
-                <div className="source-favicon-wrapper">
-                  <img
-                    src={faviconUrl}
-                    alt=""
-                    className="source-favicon"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                  <FileTextIcon size={12} className="source-fallback-icon" />
+            return (
+              <button
+                key={source.id || index}
+                type="button"
+                className="perplexity-source-card"
+                onClick={() => setSelectedSource(source)}
+                title={`Inspeccionar fuente: ${source.title} (${source.domain})`}
+              >
+                <div className="source-card-header">
+                  <div className="source-favicon-wrapper">
+                    <img
+                      src={faviconUrl}
+                      alt=""
+                      className="source-favicon"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    <FileTextIcon size={12} className="source-fallback-icon" />
+                  </div>
+                  <span className="source-card-domain">{source.domain}</span>
+                  <span className="source-card-num">[{index + 1}]</span>
                 </div>
-                <span className="source-card-domain">{source.domain}</span>
-                <span className="source-card-num">[{index + 1}]</span>
-              </div>
 
-              <div className="source-card-body">
-                <span className="source-card-title">{source.title}</span>
-              </div>
+                <div className="source-card-body">
+                  <span className="source-card-title">{source.title}</span>
+                </div>
 
-              <div className="source-card-footer">
-                <span className="source-visit-label">Consultar fuente</span>
-                <ExternalLinkIcon size={11} className="source-ext-icon" />
-              </div>
-            </a>
-          );
-        })}
+                <div className="source-card-footer">
+                  <span className="source-visit-label">Ver cita completa</span>
+                  <ExternalLinkIcon size={11} className="source-ext-icon" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      <CitationInspectorModal
+        source={selectedSource}
+        isOpen={Boolean(selectedSource)}
+        onClose={() => setSelectedSource(null)}
+      />
+    </>
   );
 }

@@ -140,15 +140,6 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
         section.header_distance = Inches(0.5)
         section.footer_distance = Inches(0.5)
 
-        # Pie de página legal
-        footer = section.footer
-        f_p = footer.paragraphs[0]
-        f_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        f_run = f_p.add_run("Generado por Legalia · Asistente Jurídico de Colombia")
-        f_run.font.name = "Arial"
-        f_run.font.size = Pt(8.5)
-        f_run.font.color.rgb = RGBColor(128, 128, 128)
-
     # Estilo Normal
     style = doc.styles["Normal"]
     font = style.font
@@ -168,13 +159,58 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
     r_title.font.color.rgb = RGBColor(15, 23, 42)
 
     lines = markdown_content.split("\n")
-    for line in lines:
+    i = 0
+    while i < len(lines):
+        line = lines[i]
         stripped = line.strip()
         if not stripped:
+            i += 1
             continue
 
         # Evitar repetir el título si viene en la primera línea
         if stripped.lower() == title.lower() or stripped.lower() == f"# {title.lower()}":
+            i += 1
+            continue
+
+        # Detección de Tablas en Markdown
+        if stripped.startswith("|") and stripped.endswith("|") and i + 1 < len(lines) and "|" in lines[i + 1] and "---" in lines[i + 1]:
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith("|") and lines[i].strip().endswith("|"):
+                table_lines.append(lines[i].strip())
+                i += 1
+            
+            # Parsear filas y columnas
+            rows_data = []
+            for tl in table_lines:
+                # Omitir fila separadora
+                if re.match(r"^\|(\s*:?-+:?\s*\|)+$", tl):
+                    continue
+                cells = [c.strip() for c in tl.strip("|").split("|")]
+                rows_data.append(cells)
+
+            if rows_data:
+                col_count = max(len(r) for r in rows_data)
+                table = doc.add_table(rows=len(rows_data), cols=col_count)
+                table.style = "Table Grid"
+                for row_idx, r_data in enumerate(rows_data):
+                    is_header = (row_idx == 0)
+                    for col_idx in range(col_count):
+                        cell_val = r_data[col_idx] if col_idx < len(r_data) else ""
+                        cell = table.cell(row_idx, col_idx)
+                        p_cell = cell.paragraphs[0]
+                        p_cell.paragraph_format.space_before = Pt(3)
+                        p_cell.paragraph_format.space_after = Pt(3)
+                        p_cell.paragraph_format.line_spacing = 1.15
+                        if is_header:
+                            r = p_cell.add_run(cell_val)
+                            r.bold = True
+                            r.font.name = "Arial"
+                            r.font.size = Pt(10)
+                            r.font.color.rgb = RGBColor(15, 23, 42)
+                        else:
+                            _add_formatted_runs(p_cell, cell_val)
+                p_spacer = doc.add_paragraph()
+                p_spacer.paragraph_format.space_after = Pt(6)
             continue
 
         # Encabezado Nivel 1
@@ -189,6 +225,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             r.font.name = "Arial"
             r.font.size = Pt(13)
             r.font.color.rgb = RGBColor(30, 58, 138)
+            i += 1
 
         # Encabezado Nivel 2
         elif stripped.startswith("## "):
@@ -202,6 +239,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             r.font.name = "Arial"
             r.font.size = Pt(12)
             r.font.color.rgb = RGBColor(37, 99, 235)
+            i += 1
 
         # Encabezado Nivel 3
         elif stripped.startswith("### "):
@@ -215,6 +253,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             r.font.name = "Arial"
             r.font.size = Pt(11)
             r.font.color.rgb = RGBColor(15, 23, 42)
+            i += 1
 
         # Elementos de lista (viñetas)
         elif stripped.startswith("- ") or stripped.startswith("* "):
@@ -224,6 +263,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.line_spacing = 1.15
             _add_formatted_runs(p, b_text)
+            i += 1
 
         # Elementos de lista numerada
         elif re.match(r"^\d+\.\s+", stripped):
@@ -234,6 +274,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.line_spacing = 1.15
             _add_formatted_runs(p, n_text)
+            i += 1
 
         # Líneas divisorias
         elif stripped in ("---", "***", "___"):
@@ -243,8 +284,19 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             r = p.add_run("―" * 40)
             r.font.color.rgb = RGBColor(148, 163, 184)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            i += 1
 
-        # Párrafos ordinarios de cláusulas
+        # Cláusulas judiciales / contractuales
+        elif re.match(r"^(CLÁUSULA|CLAUSULA|ARTÍCULO|ARTICULO|PRIMERO|SEGUNDO|TERCERO|CUARTO|QUINTO|SEXTO|SÉPTIMO|SEPTIMO|OCTAVO|NOVENO|DÉCIMO|DECIMO)\b", stripped, re.IGNORECASE):
+            p = doc.add_paragraph()
+            p.paragraph_format.space_before = Pt(6)
+            p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.line_spacing = 1.15
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            _add_formatted_runs(p, stripped)
+            i += 1
+
+        # Párrafos ordinarios
         else:
             p = doc.add_paragraph()
             p.paragraph_format.space_before = Pt(3)
@@ -252,6 +304,7 @@ def create_docx_from_markdown(title: str, markdown_content: str) -> bytes:
             p.paragraph_format.line_spacing = 1.15
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             _add_formatted_runs(p, stripped)
+            i += 1
 
     buf = io.BytesIO()
     doc.save(buf)

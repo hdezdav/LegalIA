@@ -20,7 +20,7 @@ jobs:
         with:
           host: 166.1.88.122
           username: root
-          password: ${{ secrets.VPS_PASSWORD || 'W5y6dV3XJ9cl];' }}
+          password: ${{ secrets.VPS_PASSWORD }}
           script: |
             set -e
             echo "🚀 Actualizando LegalIA en el VPS..."
@@ -36,8 +36,24 @@ jobs:
             docker compose -f docker-compose.prod.yml build legalia-frontend legalia-api
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            # Healthcheck
-            sleep 5
+            # Run database migrations
+            docker compose -f docker-compose.prod.yml exec -T legalia-api alembic upgrade head || true
+
+            # Healthcheck with retry loop
+            echo "⏳ Verificando disponibilidad de la API..."
+            for i in {1..10}; do
+              if curl -fsS http://localhost/api/v1/health > /dev/null 2>&1; then
+                echo "✅ API saludable y respondiendo."
+                break
+              fi
+              echo "Intento $i/10 falló, reintentando en 3s..."
+              sleep 3
+            done
+
             docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-            curl -f http://localhost:80/health || exit 1
+            curl -fsS http://localhost/api/v1/health || { echo "❌ Falló el healthcheck de producción"; exit 1; }
+
+            # Clean dangling docker images to save disk space
+            docker image prune -f
+
             echo "✅ Despliegue completado con éxito."

@@ -1,7 +1,8 @@
 """Legal text splitter optimized for Colombian legal documents.
 
-Splits by article boundaries when possible, preserving structural hierarchy
-(Título > Capítulo > Artículo > Parágrafo) for precise citations.
+Splits by article boundaries and structural headings, preserving hierarchy
+(Libro > Título > Capítulo > Artículo > Parágrafo) for precise citations and
+accurate hybrid retrieval.
 """
 
 from __future__ import annotations
@@ -11,12 +12,13 @@ from typing import Any
 
 
 class LegalTextSplitter:
-    """Splits legal text into semantically coherent chunks.
+    """Splits legal text into semantically coherent chunks with hierarchy metadata.
 
     Prioritizes:
     1. Article boundaries (Artículo, Art., ARTÍCULO)
-    2. Section headers (TÍTULO, CAPÍTULO, Sección)
-    3. Character limit when articles are too long
+    2. Jurisprudential sections (CONSIDERACIONES, RESUELVE, ANTECEDENTES)
+    3. Structural headers (LIBRO, TÍTULO, CAPÍTULO, SECCIÓN)
+    4. Paragraph boundaries when units exceed chunk_size
     """
 
     def __init__(
@@ -27,93 +29,145 @@ class LegalTextSplitter:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
-        # Patterns for legal structure
+        # Patterns for legal norms
         self.article_pattern = re.compile(
-            r"(?:^|\n)((?:ART[IÍ]CULO|Art[íi]culo|Art\.)\s+[0-9]+[A-Za-z]?\.?)",
+            r"(?:^|\n)((?:ART[IÍ]CULO|Art[íi]culo|Art\.)\s+[0-9]+[A-Za-z\-]*\.?(?:\s+[^\n.]+)?(?:\.|\n))",
             re.IGNORECASE | re.MULTILINE,
         )
-        self.section_pattern = re.compile(
-            r"(?:^|\n)((?:T[IÍ]TULO|CAP[IÍ]TULO|Secci[óo]n)\s+[IVXLCDM0-9]+\.?)",
+        self.structural_header_pattern = re.compile(
+            r"(?:^|\n)((?:LIBRO|PARTE|T[IÍ]TULO|CAP[IÍ]TULO|SECCI[ÓO]N)\s+[IVXLCDM0-9]+[^\n]*)",
+            re.IGNORECASE | re.MULTILINE,
+        )
+        self.jurisprudence_pattern = re.compile(
+            r"(?:^|\n)((?:I{1,3}|IV|V)\.?\s+(?:ANTECEDENTES|CONSIDERACIONES|DECISI[ÓO]N|RESUELVE|FUNDAMENTOS)[^\n]*)",
             re.IGNORECASE | re.MULTILINE,
         )
         self.paragraph_pattern = re.compile(
-            r"(?:^|\n)((?:Par[áa]grafo|PARÁGRAFO|Inciso)\s+[0-9]+\.?)",
+            r"(?:^|\n)((?:Par[áa]grafo|PARÁGRAFO|Inciso)\s+[0-9]*\.?)",
             re.IGNORECASE | re.MULTILINE,
         )
 
     def extract_section(self, text: str) -> str | None:
-        """Extract the section identifier from text (e.g. 'Artículo 90')."""
+        """Extract the primary section identifier from text (e.g. 'Artículo 29')."""
         match = self.article_pattern.search(text)
         if match:
-            return match.group(1).strip()
+            raw = match.group(1).strip().rstrip(".:\n")
+            # Truncate long header lines
+            return raw[:120]
 
-        match = self.section_pattern.search(text)
+        match = self.jurisprudence_pattern.search(text)
         if match:
-            return match.group(1).strip()
+            return match.group(1).strip().rstrip(".:\n")[:120]
+
+        match = self.structural_header_pattern.search(text)
+        if match:
+            return match.group(1).strip().rstrip(".:\n")[:120]
 
         return None
 
     def extract_article_number(self, section: str | None) -> str | None:
-        """Extract article number from section string."""
+        """Extract clean article number from section string (e.g., '29', '15-A')."""
         if not section:
             return None
 
-        match = re.search(r"[Aa]rt[íiÍI]culo\s+([0-9]+[A-Za-z]?)", section, re.IGNORECASE)
+        match = re.search(r"[Aa]rt[íiÍI]culo\s+([0-9]+[A-Za-z\-]*)", section, re.IGNORECASE)
+        if match:
+            return match.group(1)
+
+        match = re.search(r"\bArt\.\s*([0-9]+[A-Za-z\-]*)", section, re.IGNORECASE)
         if match:
             return match.group(1)
 
         return None
 
     def split_by_articles(self, text: str) -> list[dict[str, Any]]:
-        """Split text by article boundaries."""
+        """Split text by article boundaries while tracking structural hierarchy."""
         chunks: list[dict[str, Any]] = []
 
-        # Find all article positions
-        article_matches = list(self.article_pattern.finditer(text))
+        # Find all article matches and structural markers
+        combined_pattern = re.compile(
+            r"(?:^|\n)((?:(?:LIBRO|PARTE|T[IÍ]TULO|CAP[IÍ]TULO|SECCI[ÓO]N)\s+[IVXLCDM0-9]+[^\n]*)|(?:(?:ART[IÍ]CULO|Art[íi]culo|Art\.)\s+[0-9]+[A-Za-z\-]*\.?)|(?:(?:I{1,3}|IV|V)\.?\s+(?:ANTECEDENTES|CONSIDERACIONES|DECISI[ÓO]N|RESUELVE|FUNDAMENTOS)[^\n]*))",
+            re.IGNORECASE | re.MULTILINE,
+        )
 
-        if not article_matches:
-            # No articles found, return whole text as one chunk
-            return [
-                {
-                    "content": text.strip(),
-                    "section": None,
-                    "article_number": None,
-                    "token_count": len(text) // 4,
-                }
-            ]
+        matches = list(combined_pattern.finditer(text))
 
-        # Process each article
-        for i, match in enumerate(article_matches):
+        if not matches:
+            # Fallback for plain text or unstructured decisions
+            sub_chunks = self._split_long_text(text)
+            for idx, sc in enumerate(sub_chunks):
+                chunks.append(
+                    {
+                        "content": sc.strip(),
+                        "section": f"Sección {idx + 1}" if len(sub_chunks) > 1 else None,
+                        "article_number": None,
+                        "hierarchy_path": None,
+                        "token_count": max(1, len(sc) // 4),
+                    }
+                )
+            return chunks
+
+        # Track hierarchical state
+        current_hierarchy: dict[str, str] = {}
+        
+        for i, match in enumerate(matches):
             start = match.start()
-            end = article_matches[i + 1].start() if i + 1 < len(article_matches) else len(text)
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+            block_text = text[start:end].strip()
 
-            article_text = text[start:end].strip()
-
-            if not article_text:
+            if not block_text:
                 continue
 
-            section = self.extract_section(article_text)
+            marker = match.group(1).strip()
+
+            # Check if this marker is a structural header (Libro/Título/Capítulo)
+            upper_marker = marker.upper()
+            if any(upper_marker.startswith(k) for k in ["LIBRO", "PARTE"]):
+                current_hierarchy = {"libro": marker}
+                continue
+            elif upper_marker.startswith("TÍTULO") or upper_marker.startswith("TITULO"):
+                current_hierarchy = {k: v for k, v in current_hierarchy.items() if k in ["libro"]}
+                current_hierarchy["titulo"] = marker
+                continue
+            elif upper_marker.startswith("CAPÍTULO") or upper_marker.startswith("CAPITULO"):
+                current_hierarchy = {k: v for k, v in current_hierarchy.items() if k in ["libro", "titulo"]}
+                current_hierarchy["capitulo"] = marker
+                continue
+            elif upper_marker.startswith("SECCIÓN") or upper_marker.startswith("SECCION"):
+                current_hierarchy = {k: v for k, v in current_hierarchy.items() if k in ["libro", "titulo", "capitulo"]}
+                current_hierarchy["seccion"] = marker
+                continue
+
+            # Build hierarchy path string
+            hierarchy_parts = [v for k, v in current_hierarchy.items()]
+            section = self.extract_section(block_text)
+            if section and section not in hierarchy_parts:
+                hierarchy_parts.append(section)
+            hierarchy_path = " > ".join(hierarchy_parts) if hierarchy_parts else None
+
             article_number = self.extract_article_number(section)
 
-            # If article is too long, split it further
-            if len(article_text) > self.chunk_size * 4:  # 4 chars per token estimate
-                sub_chunks = self._split_long_text(article_text)
+            # If block is too long, split it further
+            if len(block_text) > self.chunk_size * 4:
+                sub_chunks = self._split_long_text(block_text)
                 for j, sub_chunk in enumerate(sub_chunks):
                     chunks.append(
                         {
                             "content": sub_chunk,
                             "section": f"{section} (parte {j+1})" if section else None,
                             "article_number": article_number,
-                            "token_count": len(sub_chunk) // 4,
+                            "hierarchy_path": hierarchy_path,
+                            "token_count": max(1, len(sub_chunk) // 4),
                         }
                     )
             else:
                 chunks.append(
                     {
-                        "content": article_text,
+                        "content": block_text,
                         "section": section,
                         "article_number": article_number,
-                        "token_count": len(article_text) // 4,
+                        "hierarchy_path": hierarchy_path,
+                        "token_count": max(1, len(block_text) // 4),
                     }
                 )
 
@@ -164,15 +218,11 @@ class LegalTextSplitter:
         - content: chunk text
         - section: section identifier (e.g. "Artículo 90")
         - article_number: extracted article number (e.g. "90")
+        - hierarchy_path: full breadcrumb path (e.g. "Título I > Capítulo II > Artículo 15")
         - token_count: estimated token count
         """
         if not text or not text.strip():
             return []
 
-        # Try splitting by articles first
         chunks = self.split_by_articles(text)
-
-        # Filter empty chunks
-        chunks = [c for c in chunks if c["content"].strip()]
-
-        return chunks
+        return [c for c in chunks if c["content"].strip()]

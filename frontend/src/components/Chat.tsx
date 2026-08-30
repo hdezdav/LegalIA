@@ -945,23 +945,30 @@ export function Chat({
           </div>
         ) : (
           <div className="message-list">
-            {conversation.messages.map((message, idx) => (
-              <div key={message.id}>
-                {message.attachedFiles && message.attachedFiles.length > 0 && (
-                  <div className="message-attached-file-badge">
-                    <FileTextIcon size={14} />
-                    <span>{message.attachedFiles[0].filename}</span>
-                  </div>
-                )}
-                <Message
-                  message={message}
-                  isStreaming={loading && idx === conversation.messages.length - 1 && message.role === 'assistant'}
-                  onRegenerate={idx === conversation.messages.length - 1 && message.role === 'assistant' ? handleRegenerate : undefined}
-                  onSendMessage={handleSendCustomMessage}
-                  onFormReady={handleFormReady}
-                />
-              </div>
-            ))}
+            {conversation.messages.map((message, idx) => {
+              const isLastMessage = idx === conversation.messages.length - 1;
+              const hasSubsequentUserMessage = conversation.messages.slice(idx + 1).some((m) => m.role === 'user');
+              const isHistorical = hasSubsequentUserMessage || (!isLastMessage && message.role === 'assistant');
+
+              return (
+                <div key={message.id}>
+                  {message.attachedFiles && message.attachedFiles.length > 0 && (
+                    <div className="message-attached-file-badge">
+                      <FileTextIcon size={14} />
+                      <span>{message.attachedFiles[0].filename}</span>
+                    </div>
+                  )}
+                  <Message
+                    message={message}
+                    isStreaming={loading && isLastMessage && message.role === 'assistant'}
+                    isHistorical={isHistorical}
+                    onRegenerate={isLastMessage && message.role === 'assistant' ? handleRegenerate : undefined}
+                    onSendMessage={handleSendCustomMessage}
+                    onFormReady={handleFormReady}
+                  />
+                </div>
+              );
+            })}
 
             <div ref={messagesEndRef} />
           </div>

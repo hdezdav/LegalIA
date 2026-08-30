@@ -24,7 +24,6 @@ export function ConversationsView({
   onNewChat,
 }: ConversationsViewProps) {
   const [search, setSearch] = useState('');
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [localQuota, setLocalQuota] = useState<TokenQuota>({
     total_tokens: 15000000,
     used_tokens: 1282915,
@@ -82,13 +81,7 @@ export function ConversationsView({
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (confirmDeleteId === id) {
-      onDelete(id);
-      setConfirmDeleteId(null);
-    } else {
-      setConfirmDeleteId(id);
-      setTimeout(() => setConfirmDeleteId(null), 3000);
-    }
+    onDelete(id);
   };
 
   return (
@@ -126,7 +119,6 @@ export function ConversationsView({
                 SPECIALIZATIONS.find((s) => s.id === conv.specialization) ||
                 SPECIALIZATIONS[0];
               const isActive = conv.id === activeConversationId;
-              const isConfirm = confirmDeleteId === conv.id;
 
               const section = getConversationSection(conv.updated_at);
               const previousSection = index > 0 ? getConversationSection(sorted[index - 1].updated_at) : null;
@@ -149,9 +141,9 @@ export function ConversationsView({
                     </div>
                   </div>
                   <button
-                    className={`chat-item-del-btn ${isConfirm ? 'confirm' : ''}`}
+                    className="chat-item-del-btn"
                     onClick={(e) => handleDelete(e, conv.id)}
-                    title={isConfirm ? 'Confirmar eliminación' : 'Eliminar'}
+                    title="Eliminar conversación"
                   >
                     <TrashIcon size={14} />
                   </button>

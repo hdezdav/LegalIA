@@ -29,10 +29,46 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
   // Convert basic markdown elements to legal-styled HTML
   const lines = markdown.split('\n');
   const htmlParts: string[] = [];
+  let i = 0;
 
-  for (let i = 0; i < lines.length; i++) {
+  while (i < lines.length) {
     const line = lines[i].trim();
     if (!line) {
+      i++;
+      continue;
+    }
+
+    // Detección y parseo de tablas en Markdown
+    if (line.startsWith('|') && line.endsWith('|') && i + 1 < lines.length && lines[i + 1].includes('|') && lines[i + 1].includes('---')) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+        tableLines.push(lines[i].trim());
+        i++;
+      }
+
+      let tableHtml = '<table class="legal-table">\n<thead>\n<tr>';
+      const rows = tableLines.filter((tl) => !/^\|(\s*:?-+:?\s*\|)+$/.test(tl));
+      if (rows.length > 0) {
+        const headerCells = rows[0].slice(1, -1).split('|').map((c) => c.trim());
+        headerCells.forEach((hc) => {
+          tableHtml += `<th>${hc}</th>`;
+        });
+        tableHtml += '</tr>\n</thead>\n<tbody>';
+
+        for (let r = 1; r < rows.length; r++) {
+          tableHtml += '\n<tr>';
+          const cells = rows[r].slice(1, -1).split('|').map((c) => c.trim());
+          cells.forEach((cell) => {
+            const formatted = cell
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            tableHtml += `<td>${formatted}</td>`;
+          });
+          tableHtml += '</tr>';
+        }
+        tableHtml += '\n</tbody>\n</table>';
+        htmlParts.push(tableHtml);
+      }
       continue;
     }
 
@@ -57,6 +93,7 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
         .replace(/\*(.*?)\*/g, '<em>$1</em>');
       htmlParts.push(`<p>${formatted}</p>`);
     }
+    i++;
   }
 
   return `
@@ -68,7 +105,7 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
   <style>
     @page {
       size: letter;
-      margin: 2.5cm 2.5cm 2.5cm 2.5cm;
+      margin: 2.54cm 2.54cm 2.54cm 2.54cm;
     }
     body {
       font-family: 'Times New Roman', Times, serif, 'Segoe UI', Arial;
@@ -76,32 +113,32 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
       line-height: 1.5;
       color: #111827;
       margin: 0;
-      padding: 2cm;
+      padding: 2.5cm;
       background: #ffffff;
       text-align: justify;
     }
     h1 {
-      font-size: 15pt;
+      font-size: 14pt;
       font-weight: bold;
       text-align: center;
       text-transform: uppercase;
-      margin-bottom: 24pt;
+      margin-bottom: 20pt;
       border-bottom: 2px solid #1e3a8a;
       padding-bottom: 8pt;
       color: #0f172a;
     }
     h2 {
-      font-size: 13pt;
+      font-size: 12.5pt;
       font-weight: bold;
-      margin-top: 18pt;
+      margin-top: 16pt;
       margin-bottom: 8pt;
       color: #1e3a8a;
       text-transform: uppercase;
     }
     h3 {
-      font-size: 12pt;
+      font-size: 11.5pt;
       font-weight: bold;
-      margin-top: 14pt;
+      margin-top: 12pt;
       margin-bottom: 6pt;
     }
     p {
@@ -129,6 +166,23 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
       border-top: 1px solid #94a3b8;
       margin: 20pt 0;
     }
+    .legal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14pt 0;
+      font-size: 10.5pt;
+      page-break-inside: avoid;
+    }
+    .legal-table th, .legal-table td {
+      border: 1px solid #94a3b8;
+      padding: 6pt 8pt;
+      text-align: left;
+    }
+    .legal-table th {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      color: #0f172a;
+    }
     .signature-section {
       margin-top: 40pt;
       display: flex;
@@ -141,14 +195,6 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
       padding-top: 6pt;
       text-align: center;
       font-size: 11pt;
-    }
-    .footer-note {
-      margin-top: 30pt;
-      font-size: 9pt;
-      color: #64748b;
-      text-align: center;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 8pt;
     }
     @media print {
       body {
@@ -163,9 +209,6 @@ export function markdownToLegalHtml(title: string, markdown: string): string {
 <body>
   <h1>${title}</h1>
   ${htmlParts.join('\n  ')}
-  <div class="footer-note">
-    Documento elaborado con asistencia de <strong>Legalia</strong> · Plataforma de Inteligencia Artificial Jurídica para Colombia
-  </div>
 </body>
 </html>
 `;

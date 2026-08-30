@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { exportToWord, exportToPdf, exportToMarkdown } from '../../utils/documentExport';
+import { exportToWord, exportToPdf } from '../../utils/documentExport';
 import { copyToClipboard } from '../../utils';
 import { FileTextIcon, DownloadIcon, CopyIcon, CheckIcon } from '../Icons';
 import './LegalDocumentCard.css';
@@ -24,6 +24,11 @@ export function LegalDocumentCard({ title, type = 'documento', content }: LegalD
     }
   };
 
+  const cleanTitle = title
+    .replace(/^#+\s*/, '')
+    .replace(/\*\*/g, '')
+    .trim() || 'Documento Judicial';
+
   const getDocTypeBadge = (t: string) => {
     const lower = t.toLowerCase();
     if (lower.includes('contrat') || lower.includes('arrend') || lower.includes('laboral') || lower.includes('servici')) {
@@ -38,85 +43,83 @@ export function LegalDocumentCard({ title, type = 'documento', content }: LegalD
     if (lower.includes('demanda') || lower.includes('poder') || lower.includes('memorial') || lower.includes('recurso')) {
       return { label: 'Escrito Judicial', color: 'badge-judicial' };
     }
-    return { label: 'Documento Jurídico', color: 'badge-general' };
+    return { label: 'Documento Oficial', color: 'badge-general' };
   };
 
   const badgeInfo = getDocTypeBadge(type || title);
 
   return (
-    <div className="legal-doc-card">
-      <div className="legal-doc-header">
-        <div className="legal-doc-icon-wrap">
-          <FileTextIcon size={20} className="legal-doc-icon" />
+    <div className="apple-legal-doc-card">
+      <div className="doc-card-main-row">
+        <div className="doc-card-icon-tile">
+          <FileTextIcon size={22} className="doc-tile-icon" />
+          <span className="doc-tile-ext">DOCX</span>
         </div>
-        <div className="legal-doc-meta">
-          <div className="legal-doc-title-row">
-            <h4 className="legal-doc-title">{title}</h4>
-            <span className={`legal-doc-type-badge ${badgeInfo.color}`}>{badgeInfo.label}</span>
+
+        <div className="doc-card-info">
+          <div className="doc-card-title-line">
+            <h4 className="doc-card-heading" title={cleanTitle}>{cleanTitle}</h4>
+            <span className={`doc-card-badge ${badgeInfo.color}`}>{badgeInfo.label}</span>
           </div>
-          <p className="legal-doc-subtitle">
-            {wordCount} palabras · Estándar legal colombiano
-          </p>
+          <div className="doc-card-meta-line">
+            <span>Estándar Judicial Colombiano</span>
+            <span>•</span>
+            <span>{wordCount} palabras</span>
+            <span>•</span>
+            <span>Editable en Word / PDF</span>
+          </div>
         </div>
       </div>
 
-      <div className="legal-doc-actions">
-        <button
-          type="button"
-          className="legal-doc-btn legal-doc-btn-word"
-          onClick={() => exportToWord(title, content)}
-          title="Descargar en formato Microsoft Word (.docx)"
-        >
-          <DownloadIcon size={14} />
-          <span>Descargar Word</span>
-        </button>
+      <div className="doc-card-toolbar">
+        <div className="doc-card-primary-actions">
+          <button
+            type="button"
+            className="doc-action-btn doc-btn-primary"
+            onClick={() => exportToWord(cleanTitle, content)}
+            title="Descargar en formato Microsoft Word (.docx)"
+          >
+            <DownloadIcon size={14} />
+            <span>Descargar Word</span>
+          </button>
+
+          <button
+            type="button"
+            className="doc-action-btn doc-btn-secondary"
+            onClick={() => exportToPdf(cleanTitle, content)}
+            title="Imprimir o guardar como PDF"
+          >
+            <FileTextIcon size={14} />
+            <span>PDF / Imprimir</span>
+          </button>
+
+          <button
+            type="button"
+            className="doc-action-btn doc-btn-ghost"
+            onClick={handleCopy}
+            title="Copiar texto completo"
+          >
+            {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+            <span>{copied ? 'Copiado' : 'Copiar'}</span>
+          </button>
+        </div>
 
         <button
           type="button"
-          className="legal-doc-btn legal-doc-btn-pdf"
-          onClick={() => exportToPdf(title, content)}
-          title="Imprimir o guardar en formato PDF"
-        >
-          <FileTextIcon size={14} />
-          <span>Imprimir / PDF</span>
-        </button>
-
-        <button
-          type="button"
-          className="legal-doc-btn legal-doc-btn-secondary"
-          onClick={() => exportToMarkdown(title, content)}
-          title="Descargar en formato Markdown (.md)"
-        >
-          <DownloadIcon size={14} />
-          <span>Markdown (.md)</span>
-        </button>
-
-        <button
-          type="button"
-          className="legal-doc-btn legal-doc-btn-secondary"
-          onClick={handleCopy}
-          title="Copiar texto completo al portapapeles"
-        >
-          {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
-          <span>{copied ? 'Copiado' : 'Copiar texto'}</span>
-        </button>
-
-        <button
-          type="button"
-          className="legal-doc-btn legal-doc-btn-toggle"
-          onClick={() => setExpanded((current) => !current)}
+          className={`doc-action-btn doc-btn-toggle ${expanded ? 'active' : ''}`}
+          onClick={() => setExpanded((curr) => !curr)}
           aria-expanded={expanded}
-          title={expanded ? 'Colapsar vista previa' : 'Ver documento completo'}
+          title={expanded ? 'Ocultar vista previa' : 'Ver documento completo'}
         >
-          <span aria-hidden="true">{expanded ? '⌃' : '⌄'}</span>
-          <span>{expanded ? 'Ocultar vista previa' : 'Ver vista previa'}</span>
+          <span>{expanded ? 'Ocultar vista previa' : 'Vista previa'}</span>
+          <span className="doc-toggle-arrow" aria-hidden="true">{expanded ? '▴' : '▾'}</span>
         </button>
       </div>
 
       {expanded && (
-        <div className="legal-doc-preview-body" role="region" aria-label="Vista previa del documento">
-          <div className="legal-doc-preview-content">
-            <pre className="legal-doc-pre">{content}</pre>
+        <div className="doc-card-preview-container">
+          <div className="doc-card-sheet">
+            <pre className="doc-sheet-text">{content}</pre>
           </div>
         </div>
       )}

@@ -64,8 +64,8 @@ docker compose version
 mkdir -p /opt/legalia
 cd /opt/legalia
 
-# Clonar repo (ajustar URL según tu repo)
-git clone https://github.com/tu-usuario/LegalIA.git .
+# Clonar repo (ajustar URL según corresponda)
+git clone https://github.com/hdezdav/LegalIA.git .
 
 # O si ya lo tienes localmente, usar rsync:
 # rsync -avz --exclude 'node_modules' --exclude '.venv' /ruta/local/ root@vps:/opt/legalia/

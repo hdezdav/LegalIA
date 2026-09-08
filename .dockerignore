@@ -33,11 +33,18 @@ infrastructure/postgres/data/
 caddy_data/
 caddy_config/
 
-# Editor / OS
+# Editor / OS / AI Tooling
 .vscode/
 .idea/
 .DS_Store
 *.swp
+.agents/
+.atl/
+.claude/
+.codegraph/
+.gemini/
+.cursor/
+skills-lock.json
 
 # Docs are not needed at runtime
 docs/

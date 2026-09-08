@@ -31,6 +31,16 @@ env/
 .env*
 !.env.example
 
+# AI Assistants, Agents & Skills
+.agents/
+.atl/
+.claude/
+.codegraph/
+.gemini/
+.cursor/
+.windsurf/
+skills-lock.json
+
 # IDE & Tooling
 .vscode/
 .idea/
@@ -39,8 +49,6 @@ env/
 *~
 .DS_Store
 .Rhistory
-.codegraph/
-.claude/
 
 # Jupyter
 .ipynb_checkpoints

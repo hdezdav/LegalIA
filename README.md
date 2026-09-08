@@ -10,6 +10,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791.svg?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/tests-140%2B%20passed-success.svg?logo=pytest&logoColor=white)](backend/tests/)
+[![Architecture](https://img.shields.io/badge/architecture-Clean%20%2F%20Hexagonal-orange.svg)](#-system-architecture)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 </div>
@@ -30,6 +32,35 @@ Unlike generic LLM wrappers, LegalIA implements an **evidence-first RAG architec
 ## 🏛️ System Architecture
 
 LegalIA adheres to **Clean / Hexagonal Architecture** principles, decoupling business rules from external AI providers and data stores.
+
+### End-to-End RAG & Verification Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["Ingestion & Indexing Engine"]
+        DOC["Colombian Legal Corpus<br/>(Laws, Codes, Sentencias)"] --> SPLIT["Hierarchical LegalSplitter<br/>(Libro > Título > Capítulo > Artículo)"]
+        SPLIT --> EMB["Dense Vector Embeddings<br/>(1024-d via pgvector)"]
+        SPLIT --> FTS["Spanish Full-Text Search<br/>(tsvector + GIN Index)"]
+    end
+
+    subgraph Retrieval["Hybrid Search & Reranking"]
+        QUERY["User Legal Query"] --> VEC["Cosine Vector Search"]
+        QUERY --> LEX["Lexical Search (Spanish Stemmer)"]
+        VEC --> RRF["Reciprocal Rank Fusion (RRF)"]
+        LEX --> RRF
+        RRF --> RERANK["Cross-Encoder Reranker<br/>(Contextual Precision Scoring)"]
+    end
+
+    subgraph Synthesis["Synthesis & Verification Guardrail"]
+        RERANK --> THRESH{Evidence Score<br/>>= Threshold?}
+        THRESH -- Refusal --> REFUSE["Explicit Refusal:<br/>'NO EVIDENCE → NO ANSWER'"]
+        THRESH -- Pass --> LLM["LLM Synthesis (OpenAI / Anthropic / Mock)"]
+        LLM --> VERIFY["Secondary Fact Verification Audit<br/>(Cross-checks tokens against source chunks)"]
+        VERIFY --> STREAM["Streaming Response + Interactive Citations"]
+    end
+```
+
+### Infrastructure Topology
 
 ```
                               ┌────────────────────────┐
@@ -94,6 +125,34 @@ LegalIA adheres to **Clean / Hexagonal Architecture** principles, decoupling bus
 | **Embeddings** | Alibaba DashScope, BGE-M3, Mock | Multilingual dense vector generation |
 | **Reranking** | Alibaba GTE Reranker, Mock | Cross-encoder contextual precision |
 | **Infrastructure** | Docker, Docker Compose, Caddy, Nginx | Containerized deployment, automatic HTTPS |
+
+---
+
+## 📂 Repository Structure
+
+```
+LegalIA/
+├── backend/                  # FastAPI Application (Clean / Hexagonal Architecture)
+│   ├── alembic/              # Database schema migrations (pgvector enabled)
+│   ├── app/
+│   │   ├── api/routes/       # REST API endpoints & SSE streaming handlers
+│   │   ├── core/             # Security (JWT, Argon2), configuration & settings
+│   │   ├── db/models/        # SQLAlchemy 2 models (chunks, documents, usage)
+│   │   ├── providers/        # LLM, Embedding & Reranking adapters (Hexagonal Ports)
+│   │   └── services/         # RAG pipeline orchestration, verification & search
+│   └── tests/                # 140+ automated unit & integration test suites
+├── frontend/                 # React 18 + TypeScript + Vite SPA
+│   └── src/
+│       ├── components/       # UI components (SidePanel, CitationsModal, QuotaMeter)
+│       └── styles/           # Modern CSS tokens & accessibility-first styling
+├── ingestion/                # Document extraction, structural splitters & indexing CLI
+├── evaluation/               # Precision/Recall benchmarks & legal retrieval evaluation
+├── corpus/                   # Sample Colombian legal corpus (Constitución, Códigos)
+├── docs/                     # Comprehensive technical documentation & guides
+├── scripts/                  # Administrative tools & deployment automation
+├── docker-compose.yml        # Development multi-container orchestration
+└── Makefile                  # Developer workflow & automation commands
+```
 
 ---
 
@@ -179,6 +238,7 @@ Explore deep-dive technical guides in the [`docs/`](docs/) directory:
 - 🚢 [**Deployment Guide**](docs/DEPLOYMENT.md): Production deployment, SSL configuration, and environment setup.
 - 🎨 [**Design System**](docs/DESIGN_SYSTEM.md): Tailored CSS design tokens, typography, and accessibility guidelines.
 - ⚖️ [**Corpus Sources**](docs/CORPUS_SOURCES.md): Primary sources for Colombian statutory laws and constitutional jurisprudence.
+- 📊 [**Ingestion Status & Corpus Metrics**](docs/INGESTION_STATUS.md): Processing status, corpus coverage, and extraction audit trail.
 
 ---
 

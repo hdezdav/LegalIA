@@ -1,7 +1,7 @@
 """LLM provider selection.
 
 One place decides which provider is active. Supports both native Anthropic SDK
-and OpenAI-compatible endpoints (such as Nodule, LiteLLM, vLLM, OpenRouter)
+and OpenAI-compatible endpoints (such as LiteLLM, vLLM, Ollama, OpenRouter)
 supporting Claude, GPT, and Gemini models.
 """
 
@@ -34,7 +34,7 @@ def build_llm_provider(config: Settings) -> LLMProvider:
         )
         return MockLLMProvider()
 
-    # 1. Check OpenAI-compatible provider / Nodule
+    # 1. Check OpenAI-compatible provider
     llm_key = ""
     if config.LLM_API_KEY:
         llm_key = config.LLM_API_KEY.get_secret_value().strip()

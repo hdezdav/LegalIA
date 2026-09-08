@@ -209,7 +209,7 @@ function mapRawModelToOption(raw: {
   const id = raw.id;
   const owned = (raw.owned_by || '').toLowerCase();
 
-  // If backend provided enriched fields from Nodule
+  // If backend provided enriched fields
   if (raw.name && raw.provider && raw.description) {
     return {
       id: raw.id,
@@ -268,7 +268,7 @@ function mapRawModelToOption(raw: {
     };
   }
 
-  if (id.includes('gpt') || owned.includes('gpt') || owned.includes('nodule')) {
+  if (id.includes('gpt') || owned.includes('gpt') || owned.includes('openai')) {
     let name = id.toUpperCase().replace(/-/g, ' ');
 
     // Format GPT model names
@@ -301,7 +301,7 @@ function mapRawModelToOption(raw: {
     id,
     name: id,
     provider: 'Legalia',
-    description: `Modelo disponible en Nodule (${id})`,
+    description: `Modelo disponible (${id})`,
   };
 }
 
@@ -334,7 +334,7 @@ export function ModelSelector({ selectedModelId, onSelectModel }: ModelSelectorP
     };
   }, [isOpen]);
 
-  // Fetch models dynamically from /api/v1/models (Nodule API)
+  // Fetch models dynamically from /api/v1/models
   useEffect(() => {
     let isMounted = true;
     async function loadDynamicModels() {

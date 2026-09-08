@@ -1,6 +1,6 @@
 """OpenAI-compatible LLM provider.
 
-Communicates with OpenAI-compatible endpoints (such as Nodule, vLLM, LiteLLM, Ollama, OpenRouter)
+Communicates with OpenAI-compatible endpoints (such as LiteLLM, vLLM, Ollama, OpenRouter, or OpenAI)
 supporting Claude, GPT, and Gemini models with precise token usage telemetry.
 """
 
@@ -28,7 +28,7 @@ class OpenAICompatibleProvider(LLMProvider):
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://access.nodule-provider.store/v1",
+        base_url: str = "https://api.openai.com/v1",
         model: str = "claude-sonnet-4.6",
         max_tokens: int = 4096,
         temperature: float = 0.0,

@@ -3,10 +3,14 @@ set -euo pipefail
 
 # ==============================================================================
 # LegalIA - Remote Production Deployment Script
-# Target: 166.1.88.122 (/opt/legalia)
+# Target: $VPS_IP ($REMOTE_DIR)
 # ==============================================================================
 
-VPS_IP="${VPS_IP:-166.1.88.122}"
+VPS_IP="${VPS_IP:-}"
+if [ -z "$VPS_IP" ]; then
+    echo "❌ VPS_IP environment variable is required (e.g. export VPS_IP=x.x.x.x)"
+    exit 1
+fi
 VPS_USER="${VPS_USER:-root}"
 VPS_PASS="${VPS_PASS:-}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/legalia}"

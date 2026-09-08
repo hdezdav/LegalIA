@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
     # --- LLM --------------------------------------------------------------
     LLM_PROVIDER: Literal["openai_compatible", "anthropic", "mock"] = "openai_compatible"
-    LLM_BASE_URL: str = "https://access.nodule-provider.store/v1"
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
     LLM_API_KEY: SecretStr | None = None
     LLM_MODEL: str = "claude-sonnet-4.6"
     ANTHROPIC_API_KEY: SecretStr | None = None

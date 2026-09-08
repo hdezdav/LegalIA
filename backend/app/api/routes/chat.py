@@ -36,8 +36,8 @@ from app.schemas.chat import (
     ModelList,
 )
 from app.services.chat_service import ChatService
-from app.services.nodule_service import get_nodule_quota
 from app.services.retrieval_service import RetrievalService
+from app.services.usage_service import get_token_quota
 
 router = APIRouter(tags=["chat"])
 logger = get_logger(__name__)
@@ -45,10 +45,10 @@ logger = get_logger(__name__)
 
 @router.get(
     "/usage/quota",
-    summary="Get live Nodule AI token quota and balance",
+    summary="Get live token quota and usage metrics",
 )
-async def get_token_quota(session: DbSession):
-    return await get_nodule_quota(session=session)
+async def get_quota_endpoint(session: DbSession):
+    return await get_token_quota(session=session)
 
 
 #: The model name clients select. Deliberately opaque: which Claude model, which
@@ -83,8 +83,8 @@ def _build_service() -> ChatService:
     )
 
 
-def _enrich_model_card(model_id: str, owned_by: str = "nodule", created: int = 0) -> ModelCard:
-    """Enriches a raw model ID from Nodule with official display name, provider and total context limit."""
+def _enrich_model_card(model_id: str, owned_by: str = "legalia", created: int = 0) -> ModelCard:
+    """Enriches a raw model ID with official display name, provider and total context limit."""
     mid = model_id.lower()
     owned = owned_by.lower()
 
@@ -201,7 +201,7 @@ def _enrich_model_card(model_id: str, owned_by: str = "nodule", created: int = 0
         provider="Legalia",
         context_limit=128000,
         context_limit_label="128k tokens",
-        description=f"Modelo Nodule ({model_id})",
+        description=f"Modelo ({model_id})",
         created=created,
     )
 
@@ -212,7 +212,7 @@ def _enrich_model_card(model_id: str, owned_by: str = "nodule", created: int = 0
     summary="List available models (OpenAI-compatible, scraped live from provider)",
 )
 async def list_models() -> ModelList:
-    """Dynamically scrape and return available models from Nodule / LLM provider."""
+    """Dynamically fetch and return available models from LLM provider."""
     import httpx
     models: list[ModelCard] = []
 
@@ -235,7 +235,7 @@ async def list_models() -> ModelList:
                         ):
                             models.append(_enrich_model_card(
                                 model_id=model_id,
-                                owned_by=item.get("owned_by", "nodule"),
+                                owned_by=item.get("owned_by", "openai"),
                                 created=item.get("created", 0),
                             ))
         except Exception as exc:
@@ -243,12 +243,11 @@ async def list_models() -> ModelList:
 
     if not models:
         default_ids = [
-            ("claude-sonnet-4.6", "anthropic-kiro"),
-            ("claude-sonnet-5", "anthropic-kiro"),
-            ("claude-opus-5", "anthropic-kiro"),
-            ("claude-haiku-4.5", "anthropic-kiro"),
-            ("gemini-3.7-flash", "gemini-antigravity"),
-            ("gpt-5.6-sol", "nodule-gpt"),
+            ("claude-sonnet-4.6", "anthropic"),
+            ("claude-haiku-4.5", "anthropic"),
+            ("gpt-4o", "openai"),
+            ("gpt-4o-mini", "openai"),
+            ("gemini-2.5-flash", "google"),
         ]
         models = [_enrich_model_card(mid, owned) for mid, owned in default_ids]
 

@@ -86,7 +86,8 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # API Keys (you need to add these manually)
-NODULE_PROVIDER_API_KEY=your_api_key_here
+LLM_API_KEY=your_llm_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Environment
 ENVIRONMENT=production
